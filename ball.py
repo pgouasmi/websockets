@@ -15,10 +15,9 @@ class Ball:
         self.win_height = win_height
         self.max_speed = self.win_width * self.win_height // 300000
         self.radius = radius
+        # self.x_vel = self.max_speed
         self.x_vel = self.max_speed / 10
         self.y_vel = 0
-        # print(f"max speed: {self.max_speed}")
-        # exit(0)
 
     def draw(self, win):
         pygame.draw.circle(win, white, (self.x, self.y), self.radius)

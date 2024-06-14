@@ -15,7 +15,7 @@ class Paddle:
         self.lastTouch = 0
         self.canMove = True
         self.score = 0
-        print(f"width: {width}, height: {height}")
+        # print(f"width: {width}, height: {height}")
         # exit(0)
     
 

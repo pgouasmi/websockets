@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>WebSocket Test</title>
+        <script>
+            function connectWebSocket() {
+                var ws = new WebSocket('ws://localhost:8001');
+
+                ws.onopen = function() {
+                    console.log('Connection is open...');
+                    var message = {type: "start", data: "Hello, World!"};
+                    ws.send(JSON.stringify(message));
+                };
+
+                ws.onerror = function (error) {
+                    console.log('WebSocket Error: ', error);
+                };
+
+                ws.onmessage = function (e) {
+                    console.log('Received message: ', e.data);
+                };
+
+                ws.onclose = function() {
+                    console.log('Connection is closed...');
+                };
+            }
+        </script>
+    </head>
+    <body>
+        <h1>WebSocket Test</h1>
+        <button onclick="connectWebSocket()">Connect</button>
+    </body>
+</html>

@@ -12,7 +12,7 @@ import asyncio
 
 class Game:
     def __init__(self):
-        print("Game constructor")
+        # print("Game constructor")
         self.width = 1500
         self.height = 1000
         self.white = (255, 255, 255)
@@ -24,7 +24,7 @@ class Game:
 
         self.ai = QL_AI(self.width, self.height, self.paddle2.width, self.paddle2.height)
 
-        self.scoreLimit = 1
+        self.scoreLimit = 3
         self.DIFFICULTY = 3
         self.RUNNING_AI = True
         self.SAVING = False
@@ -34,6 +34,7 @@ class Game:
         self.testing = True
         self.lastDump = 0
         self.ai.training = self.TRAINING
+        self.gameOver = False
 
         self.run = True
         self.pause = False
@@ -42,8 +43,8 @@ class Game:
         self.NewCalculusNeeded = True
         self.pauseCoolDown = self.currentTs
         self.lastSentInfos = 0
-        # self.ai_state = {}
         self.gameState = {}
+        self.are_args_set = False
 
         self.init_ai()
         pygame.init()
@@ -52,16 +53,23 @@ class Game:
         self.last_frame_time = 0
         # self.rungame()
 
+
+    def handleArguments(self, event):
+        print(event)
+        # handling the argumemnts -> if OK ->
+        self.are_args_set = True
+
     def handlePauseResetQuit(self):
         for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+                    self.gameOver = True
                     self.run = False
         self.keys = pygame.key.get_pressed()
         keys = self.keys
         if keys[pygame.K_r]:
             self.ball.reset()
         if keys[pygame.K_ESCAPE]:
-            self.run = False
+            self.gameOver = True
         if keys[pygame.K_SPACE]:
             self.currentTs = time.time()
             if self.currentTs - 0.2 > self.pauseCoolDown:
@@ -131,11 +139,11 @@ class Game:
             self.handlePauseResetQuit()
 
             if not self.pause:
+
                 if self.TRAININGPARTNER == False:
                     self.handlePlayer1Inputs()
                 else:
                     self.paddle1.y = self.nextCollision[1] - self.paddle1.height // 2
-
 
                 if not self.RUNNING_AI:
                     self.handlePlayer2Inputs()
@@ -180,6 +188,8 @@ class Game:
                 self.serialize()
                 self.last_frame_time = current_time
                 yield json.dumps(self.gameState)
+
+    def quit(self):
         if self.SAVING == True:
             self.save_qtable()
         pygame.quit()
@@ -245,8 +255,19 @@ class Game:
         # print("states: ", self.state[1], self.state[3], self.nextState[1], self.nextState[3])
         self.ai.upadateQTable(repr(self.state), res, reward, repr(self.nextState))
 
+
+    def isgameover(self):
+        if self.paddle1.score >= self.scoreLimit or self.paddle2.score >= self.scoreLimit or self.gameOver == True:
+            return True
+        return False
+
+
     def serialize(self):
-        if not self.pause:
+        if self.isgameover():
+            self.gameState["type"] = "gameover"
+        else:
+            self.gameState["type"] = "None"
+        if self.pause == False:
             self.gameState["game"] = self.gameSerialize()
             self.gameState["ball"] = self.ball.serialize(self)
             self.gameState["paddle1"] = self.paddle1.serialize(self)
