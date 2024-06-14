@@ -4,7 +4,6 @@ from ball import Ball
 import math
 import time
 import json
-# import main
 import pygame
 import random
 from pong_ql import QL_AI
@@ -19,10 +18,11 @@ class Game:
         self.white = (255, 255, 255)
         self.black = (0, 0, 0)
 
-        self.ball: Ball = Ball(self.width // 2, self.height // 2, 15)
-        self.paddle1: Paddle = Paddle(100, self.height // 2 - 60, 20, 120)
-        self.paddle2: Paddle = Paddle(self.width - 100, self.height // 2 - 60, 20, 120)
-        self.ai = QL_AI()
+        self.ball: Ball = Ball(self.width // 2, self.height // 2, self.width // 100, self.width, self.height)
+        self.paddle1: Paddle = Paddle(self.width // 15, self.height // 2 - 60, self.height // 50, self.height // 8.33, self.width, self.height)
+        self.paddle2: Paddle = Paddle(self.width - self.width // 15, self.height // 2 - 60, self.height // 50, self.height // 8.33, self.width, self.height)
+
+        self.ai = QL_AI(self.width, self.height, self.paddle2.width, self.paddle2.height)
 
         self.scoreLimit = 1
         self.DIFFICULTY = 3
@@ -42,7 +42,8 @@ class Game:
         self.NewCalculusNeeded = True
         self.pauseCoolDown = self.currentTs
         self.lastSentInfos = 0
-        self.state = {}
+        # self.ai_state = {}
+        self.gameState = {}
 
         self.init_ai()
         pygame.init()
@@ -50,6 +51,57 @@ class Game:
         pygame.display.set_caption("Pong")
         self.last_frame_time = 0
         # self.rungame()
+
+    def handlePauseResetQuit(self):
+        for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.run = False
+        self.keys = pygame.key.get_pressed()
+        keys = self.keys
+        if keys[pygame.K_r]:
+            self.ball.reset()
+        if keys[pygame.K_ESCAPE]:
+            self.run = False
+        if keys[pygame.K_SPACE]:
+            self.currentTs = time.time()
+            if self.currentTs - 0.2 > self.pauseCoolDown:
+                self.pauseCoolDown = self.currentTs
+                if self.pause == True:
+                    self.pause = False
+                else:
+                    self.pause = True
+    
+
+    def handlePlayer1Inputs(self):
+        keys = self.keys
+
+        if keys[pygame.K_w] and self.paddle1.canMove == True:
+            self.paddle1.move(up=True)
+        if keys[pygame.K_s] and self.paddle1.canMove == True:
+            self.paddle1.move(up=False)
+
+    
+    def handlePlayer2Inputs(self):
+        keys = self.keys
+
+        if keys[pygame.K_UP] and self.paddle2.canMove == True:
+            self.paddle2.move(up=True)
+        if keys[pygame.K_DOWN] and self.paddle2.canMove == True:
+            self.paddle2.move(up=False)
+
+    def save_qtable(self):
+        ai = self.ai
+
+        if self.testing == True:
+            ai.save('testing')
+            pygame.quit
+        if self.DIFFICULTY == 3:
+            ai.save('hard')
+        elif self.DIFFICULTY == 2:
+            ai.save('medium')
+        elif self.DIFFICULTY == 1:
+            ai.save('easy')
+
 
     async def rungame(self):
         ball = self.ball
@@ -60,14 +112,6 @@ class Game:
 
         while self.run:
 
-            # if pause == False and self.lastDump == 0 or time.time() - self.lastDump > 1 / 60:
-            #     print("NEW DUMP")
-            #     self.dump_file = open("dump_file.json", "w+")
-            #     json.dump(self.serialize(), self.dump_file, indent=6)
-            #     self.lastDump = time.time()
-            #     self.dump_file.close()
-            # if self.lastSentInfos == 0:
-            #     self.state = self.getGameState()
             current_time = time.time()
 
             if self.NewCalculusNeeded == True:
@@ -76,47 +120,25 @@ class Game:
                 else:
                     self.nextCollision = ball.calculateNextCollisionPosition(paddle2)
                 if self.TRAININGPARTNER == True:
-                    paddle1.y = self.nextCollision[1] + random.uniform(-30, 30) - 60
+                    half_height = paddle2.height // 2
+                    paddle1.y = self.nextCollision[1] + random.uniform(-half_height, half_height) - half_height
                 self.NewCalculusNeeded = False
-                # print(f"next collision: {self.nextCollision}")
+                
             self.state = None
             self.nextState = None
 
             pygame.time.delay(1)
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.run = False
-
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_ESCAPE]:
-                self.run = False
-            if keys[pygame.K_SPACE]:
-                self.currentTs = time.time()
-                if self.currentTs - 0.2 > self.pauseCoolDown:
-                    self.pauseCoolDown = self.currentTs
-                    if self.pause == True:
-                        self.pause = False
-                    else:
-                        self.pause = True
+            self.handlePauseResetQuit()
 
             if not self.pause:
-                # print(f"qtable size: {ai.qtable.__sizeof__()}")
                 if self.TRAININGPARTNER == False:
-                    if keys[pygame.K_r]:
-                        ball.reset()
-                    if keys[pygame.K_w] and paddle1.canMove == True:
-                        paddle1.move(up=True)
-                    if keys[pygame.K_s] and paddle1.canMove == True:
-                        paddle1.move(up=False)
+                    self.handlePlayer1Inputs()
                 else:
                     self.paddle1.y = self.nextCollision[1] - self.paddle1.height // 2
 
-                if not self.RUNNING_AI:
-                    if keys[pygame.K_UP] and paddle2.canMove == True:
-                        paddle2.move(up=True)
-                    if keys[pygame.K_DOWN] and paddle2.canMove == True:
-                        paddle2.move(up=False)
 
+                if not self.RUNNING_AI:
+                    self.handlePlayer2Inputs()
                 else:
                     self.interactWithAI()
 
@@ -138,53 +160,28 @@ class Game:
 
                 # Vérification des points
                 if ball.x <= 0:
-                    # Point pour le joueur 2
-                    print(f"POINT GAUCHE: {ball.x}, {ball.y}\n\n\n")
                     paddle2.score += 1
-                    # if paddle2.score == self.scoreLimit:
-                        # pygame.display.set_mode(self.width / 2, 100)
-                        # pygame.display.set_caption("player 2 won")
-                        # self.pause = True
                     paddle1.canMove = True
                     paddle2.canMove = True
                     ball.reset()
                     self.NewCalculusNeeded = True
-                    # pause = True
-                    # resetPaddles(paddle1, paddle2)
-                if ball.x >= self.width:
-                    # Point pour le joueur 1
-                    print(f"POINT DROITE {ball.x}, {ball.y}\n\n\n")
-                    print("ball_y: ", ball.y)
-                    paddle1.score += 1
-                    # if paddle1.score == self.scoreLimit:
-                    #     pygame.display.set_mode((self.width / 2, 100))
-                    #     pygame.display.set_caption("player 1 won")
-                    #     pause = True
-                    paddle1.canMove = True
-                    paddle2.canMove = True
-                    ball.reset()
-                    self.NewCalculusNeeded = True
-                    # pause = True
 
-                    # resetPaddles(paddle1, paddle2)
-                # print(type(self.state))
-                # self.state['ball'] = self.ball.x
+                if ball.x >= self.width:
+                    paddle1.score += 1
+                    paddle1.canMove = True
+                    paddle2.canMove = True
+                    ball.reset()
+                    self.NewCalculusNeeded = True
+
                 self.redraw_window()
-                print(f"current time: {current_time}, last frame time: {self.last_frame_time}\n")
-                if current_time - self.last_frame_time >= 1/60:
-                    new_state = self.getGameState()
-                    self.last_frame_time = current_time
-                    yield new_state
+
+                # send JSON game state
+            if current_time - self.last_frame_time >= 1/60:
+                self.serialize()
+                self.last_frame_time = current_time
+                yield json.dumps(self.gameState)
         if self.SAVING == True:
-            if self.testing == True:
-                ai.save('testing')
-                pygame.quit
-            if self.DIFFICULTY == 3:
-                ai.save('hard')
-            elif self.DIFFICULTY == 2:
-                ai.save('medium')
-            elif self.DIFFICULTY == 1:
-                ai.save('easy')
+            self.save_qtable()
         pygame.quit()
 
     def redraw_window(self):
@@ -236,10 +233,10 @@ class Game:
             pass
             # print("STAYS STILL")
         if res == 1 and self.paddle2.canMove == True:
-            self.paddle2.move(up=True)
+            self.paddle2.move(self.height, up=True)
             # print("GOES UP")
         if res == 2 and self.paddle2.canMove == True:
-            self.paddle2.move(up=False)
+            self.paddle2.move(self.height, up=False)
             # print("GOES DOWN")
 
         # if self.TRAINING == True:
@@ -249,10 +246,16 @@ class Game:
         self.ai.upadateQTable(repr(self.state), res, reward, repr(self.nextState))
 
     def serialize(self):
+        if not self.pause:
+            self.gameState["game"] = self.gameSerialize()
+            self.gameState["ball"] = self.ball.serialize(self)
+            self.gameState["paddle1"] = self.paddle1.serialize(self)
+            self.gameState["paddle2"] = self.paddle2.serialize(self)
+    
+    def gameSerialize(self):
         res:dict = {}
-        res["ball"] = self.ball.serialize()
-        res["paddle1"] = self.paddle1.serialize()
-        res["paddle2"] = self.paddle2.serialize()
+        res["scoreLimit"] = self.scoreLimit
+        res["pause"] = self.pause
 
         return res
 

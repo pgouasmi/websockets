@@ -2,10 +2,12 @@ import numpy as np
 import pickle
 import random
 
-width, height = 1600, 1200
-
 class QL_AI:
-    def __init__(self) -> None:
+    def __init__(self, width, height, paddle_width, paddle_height) -> None:
+        self.win_width = width
+        self.win_height = height
+        self.paddle_height = paddle_height
+        self.paddle_width = paddle_width
         self.alpha = 0.4
         self.gamma = 0.7
         self.epsilon_decay = 0.00001 #baisse du taux d'apprentissage au fur et a mesure du jeu
@@ -25,9 +27,9 @@ class QL_AI:
             self.epsilon = self.epsilon_min
 
     def getAction(self, state):
-        print(f"In get Action, state: {state}")
+        # print(f"In get Action, state: {state}")
         if state not in self.qtable:
-            print("this state is not in qtable")
+            # print("this state is not in qtable")
             self.qtable[state] = np.zeros(3)
         self.epsilon_greedy()
         if self.training == True: #need to implement training modes
@@ -53,31 +55,31 @@ class QL_AI:
         minReward = -10
         result:int = 0
 
-        print(f"nextCollision: {nextCollision}")
+        # print(f"nextCollision: {nextCollision}")
         if difficulty == 1:
             nextCollision[1] += random.randint(-5, 5)
         if nextCollision[0] == 1:
             if action == 1:
-                if nextCollision[1] < previousPosition + 60:
+                if nextCollision[1] < previousPosition + self.paddle_height / 2:
                     result = maxReward * 2
                 else:
                     result = minReward * 2
             elif action == 2:
-                if nextCollision[1] > previousPosition + 60:
+                if nextCollision[1] > previousPosition + self.paddle_height / 2:
                     result = maxReward * 2
                 else:
                     result = minReward * 2
-            elif action == 0 and nextCollision[1] >= previousPosition and nextCollision[1] + 120 < previousPosition:
+            elif action == 0 and nextCollision[1] >= previousPosition and nextCollision[1] + self.paddle_height < previousPosition:
                 result = maxReward * 10
             else:
                 result = minReward
         else:
             if difficulty == 3:
-                if action == 1 and nextCollision[1] < previousPosition + 120 and previousPosition > height // 4:
+                if action == 1 and nextCollision[1] < previousPosition + self.paddle_height and previousPosition > self.win_height // 4:
                     result = maxReward
-                elif action == 2 and nextCollision[1] > previousPosition + 120 and previousPosition < height * 0.75:
+                elif action == 2 and nextCollision[1] > previousPosition + self.paddle_height and previousPosition < self.win_height  * 0.75:
                     result = maxReward
-                elif action == 0 and abs(nextCollision[1] - previousPosition) < 120:
+                elif action == 0 and abs(nextCollision[1] - previousPosition) < self.paddle_height:
                     result = maxReward
                 else:
                     result = minReward
@@ -87,7 +89,7 @@ class QL_AI:
                 else:
                     result = maxReward
 
-        print(f"REWARD: {result}\n")
+        # print(f"REWARD: {result}\n")
         return result
     
     def save(self, name):

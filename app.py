@@ -10,6 +10,7 @@ async def handler(websocket):
         event = json.loads(message)
         if event["type"] == "start":
             async for state in game.rungame():
+                # print(json.dumps(state))
                 await websocket.send(json.dumps(state))
         # print(message)
 

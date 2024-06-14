@@ -1,23 +1,28 @@
 import pygame
 
-width, height = 1200, 800
 white = (255, 255, 255)
 black = (0, 0, 0)
+
 class Paddle:
-    def __init__(self, x, y, width, height):
+    def __init__(self, x, y, width, height, win_width, win_height):
         self.x = x
         self.y = y
         self.width = width
         self.height = height
-        self.vel = 3
+        self.win_width = win_width
+        self.win_height = win_height
+        self.vel = win_height / 333
         self.lastTouch = 0
         self.canMove = True
         self.score = 0
+        print(f"width: {width}, height: {height}")
+        # exit(0)
+    
 
     def draw(self, win):
         pygame.draw.rect(win, white, (self.x, self.y, self.width, self.height))
 
-    def move(self, up=True):
+    def move(self, height, up=True):
         temp = self.y
         if up:
             temp -= self.vel
@@ -29,9 +34,10 @@ class Paddle:
                 temp = height - self.height
         self.y = temp
 
-    def serialize(self):
+    def serialize(self, game):
         res:dict = {}
-        res["x"] = self.x
-        res["y"] = self.y
+        res["x"] = self.x / game.width
+        res["y"] = (self.y + self.height / 2) / game.height
+        res["score"] = self.score
 
         return res
