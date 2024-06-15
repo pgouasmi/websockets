@@ -33,11 +33,11 @@ class Ball:
         self.y_vel = 0
 
     # matrix
-    #        -90
-    #         |
-    #  -180<----->0
-    #         |
-    #         90
+    #         -90
+    #          |
+    #  -180 <-----> 0
+    #          |
+    #          90
 
     def updateTrajectoryP2(self, paddle):
 
@@ -183,9 +183,6 @@ class Ball:
                     goalAngle = 50
                     # print(f"    Angle corrected. now {goalAngle}")
                     self.x += 2
-
-        self.x_vel = currentSpeed * 1.05 * math.cos(math.radians(goalAngle))
-        self.y_vel = currentSpeed * 1.05 * math.sin(math.radians(goalAngle))
 
         if math.sqrt(self.x_vel ** 2 + self.y_vel ** 2) < self.max_speed:
             self.x_vel = currentSpeed * 1.05 * math.cos(math.radians(goalAngle))

@@ -18,6 +18,9 @@ class Game:
         self.white = (255, 255, 255)
         self.black = (0, 0, 0)
 
+        self.display = False
+        self.CLI_controls = True
+
         self.ball: Ball = Ball(self.width // 2, self.height // 2, self.width // 100, self.width, self.height)
         self.paddle1: Paddle = Paddle(self.width // 15, self.height // 2 - 60, self.height // 50, self.height // 8.33, self.width, self.height)
         self.paddle2: Paddle = Paddle(self.width - self.width // 15, self.height // 2 - 60, self.height // 50, self.height // 8.33, self.width, self.height)
@@ -47,9 +50,11 @@ class Game:
         self.are_args_set = False
 
         self.init_ai()
-        pygame.init()
-        self.win = pygame.display.set_mode((self.width, self.height))
-        pygame.display.set_caption("Pong")
+        if self.display == True or self.CLI_controls == True:
+            pygame.init()
+            if self.display == True:
+                self.win = pygame.display.set_mode((self.width, self.height))
+                pygame.display.set_caption("Pong")
         self.last_frame_time = 0
         # self.rungame()
 
@@ -136,17 +141,20 @@ class Game:
             self.nextState = None
 
             pygame.time.delay(1)
-            self.handlePauseResetQuit()
+            if self.CLI_controls == True:
+                self.handlePauseResetQuit()
 
             if not self.pause:
 
                 if self.TRAININGPARTNER == False:
-                    self.handlePlayer1Inputs()
+                    if self.display == True:
+                    	self.handlePlayer1Inputs()
                 else:
                     self.paddle1.y = self.nextCollision[1] - self.paddle1.height // 2
 
                 if not self.RUNNING_AI:
-                    self.handlePlayer2Inputs()
+                    if self.CLI_controls == True:
+                    	self.handlePlayer2Inputs()
                 else:
                     self.interactWithAI()
 
@@ -181,7 +189,8 @@ class Game:
                     ball.reset()
                     self.NewCalculusNeeded = True
 
-                self.redraw_window()
+                if self.display == True:
+                	self.redraw_window()
 
                 # send JSON game state
             if current_time - self.last_frame_time >= 1/60:
@@ -192,7 +201,8 @@ class Game:
     def quit(self):
         if self.SAVING == True:
             self.save_qtable()
-        pygame.quit()
+        if self.display == True or self.CLI_controls:
+            pygame.quit()
 
     def redraw_window(self):
         self.win.fill(self.black)
