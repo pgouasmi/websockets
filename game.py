@@ -21,8 +21,8 @@ class Game:
         self.display = True
         self.CLI_controls = True
 
-        self.ball: Ball = Ball(self.width // 2, self.height // 2, self.width // 100, self.width, self.height)
-        self.paddle1: Paddle = Paddle(self.width // 15, self.height // 2 - 60, self.height // 50, self.height // 8.33, self.width, self.height)
+        self.ball: Ball = Ball(self.width // 2, self.height // 2, self.height // 100, self.width, self.height)
+        self.paddle1: Paddle = Paddle(self.width // 30, self.height // 2 - 60, self.height // 150, self.height // 6, self.width, self.height)
         self.paddle2: Paddle = Paddle(self.width - self.width // 15, self.height // 2 - 60, self.height // 50, self.height // 8.33, self.width, self.height)
 
         self.ai = QL_AI(self.width, self.height, self.paddle2.width, self.paddle2.height)
