@@ -194,7 +194,7 @@ class Ball:
                 self.x_vel *= 1.1
                 self.y_vel *= 1.1
                 
-        pygame.time.delay(20)
+        # pygame.time.delay(20)
 
     def check_collision(self, paddle:Paddle):
         if (self.x - self.radius < paddle.x + paddle.width and

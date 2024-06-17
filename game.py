@@ -18,7 +18,7 @@ class Game:
         self.white = (255, 255, 255)
         self.black = (0, 0, 0)
 
-        self.display = False
+        self.display = True
         self.CLI_controls = True
 
         self.ball: Ball = Ball(self.width // 2, self.height // 2, self.width // 100, self.width, self.height)
@@ -30,11 +30,11 @@ class Game:
         self.scoreLimit = 3
         self.DIFFICULTY = 3
         self.RUNNING_AI = True
-        self.SAVING = False
+        self.SAVING = True
         self.TRAINING = True
         self.TRAININGPARTNER = True
         self.LOADING = False
-        self.testing = True
+        self.testing = False
         self.lastDump = 0
         self.ai.training = self.TRAINING
         self.gameOver = False
@@ -89,18 +89,18 @@ class Game:
         keys = self.keys
 
         if keys[pygame.K_w] and self.paddle1.canMove == True:
-            self.paddle1.move(up=True)
+            self.paddle1.move(self.height, up=True)
         if keys[pygame.K_s] and self.paddle1.canMove == True:
-            self.paddle1.move(up=False)
+            self.paddle1.move(self.height, up=False)
 
     
     def handlePlayer2Inputs(self):
         keys = self.keys
 
         if keys[pygame.K_UP] and self.paddle2.canMove == True:
-            self.paddle2.move(up=True)
+            self.paddle2.move(self.height, up=True)
         if keys[pygame.K_DOWN] and self.paddle2.canMove == True:
-            self.paddle2.move(up=False)
+            self.paddle2.move(self.height, up=False)
 
     def save_qtable(self):
         ai = self.ai
@@ -148,13 +148,13 @@ class Game:
 
                 if self.TRAININGPARTNER == False:
                     if self.display == True:
-                    	self.handlePlayer1Inputs()
+                        self.handlePlayer1Inputs()
                 else:
                     self.paddle1.y = self.nextCollision[1] - self.paddle1.height // 2
 
                 if not self.RUNNING_AI:
                     if self.CLI_controls == True:
-                    	self.handlePlayer2Inputs()
+                        self.handlePlayer2Inputs()
                 else:
                     self.interactWithAI()
 
@@ -189,11 +189,12 @@ class Game:
                     ball.reset()
                     self.NewCalculusNeeded = True
 
+                # print(f"qtable size: {ai.qtable.__sizeof__()}")
                 if self.display == True:
-                	self.redraw_window()
+                    self.redraw_window()
 
                 # send JSON game state
-            if current_time - self.last_frame_time >= 1/60:
+            if current_time - self.last_frame_time >= 1/60 or self.isgameover() == True:
                 self.serialize()
                 self.last_frame_time = current_time
                 yield json.dumps(self.gameState)
@@ -229,23 +230,26 @@ class Game:
     def getGameState(self):
         res = []
 
-        res.append(int(self.ball.x / 40))
-        res.append(int(self.ball.y / 40))
+        res.append(int(self.ball.x / 10))
+        res.append(int(self.ball.y / 10))
         res.append(int(math.degrees(math.atan2(self.ball.y_vel, self.ball.x_vel))) / 10)
-        res.append(int((self.paddle2.y + self.paddle2.height / 2) / 40))
+        res.append(int((self.paddle2.y + self.paddle2.height / 2) / 10))
 
         return res
 
 
     def interactWithAI(self):
         newTS = time.time()
-        # print(f"timestamp in struct: {self.lastSentInfos}, current: {newTS}")
-        if (newTS - self.lastSentInfos >= 1):
-            self.lastSentInfos = newTS
-            # print("NEW INFOS SENT")
+        if self.TRAINING == False:
+            # print(f"newTS: {newTS}, lastSentInfos: {self.lastSentInfos}\n")
+            if (newTS - self.lastSentInfos >= 1):
+                self.lastSentInfos = newTS
+                self.state = self.getGameState()
+                print("NEW STATE: ", self.state)
+        else:
             self.state = self.getGameState()
         res = self.ai.getAction(repr(self.state))
-        # print(f"AI RES: {res}\n")
+        print(f"AI RES: {res}\n")
 
         prevY = self.paddle2.y
 
@@ -259,15 +263,19 @@ class Game:
             self.paddle2.move(self.height, up=False)
             # print("GOES DOWN")
 
-        # if self.TRAINING == True:
-        nextState = self.state
-        reward = self.ai.getReward(self.nextCollision, res, prevY, self.DIFFICULTY)
-        # print("states: ", self.state[1], self.state[3], self.nextState[1], self.nextState[3])
-        self.ai.upadateQTable(repr(self.state), res, reward, repr(self.nextState))
+        if self.TRAINING == True:
+            nextState = self.state
+            reward = self.ai.getReward(self.nextCollision, res, prevY, self.DIFFICULTY)
+            # print("states: ", self.state[1], self.state[3], self.nextState[1], self.nextState[3])
+            self.ai.upadateQTable(repr(self.state), res, reward, repr(self.nextState))
 
 
     def isgameover(self):
-        if self.paddle1.score >= self.scoreLimit or self.paddle2.score >= self.scoreLimit or self.gameOver == True:
+        if self.TRAINING == False:
+            if self.paddle1.score >= self.scoreLimit or self.paddle2.score >= self.scoreLimit:
+                self.gameOver = True
+                return True
+        if self.gameOver == True:
             return True
         return False
 
