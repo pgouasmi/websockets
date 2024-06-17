@@ -234,6 +234,7 @@ class Ball:
         res:dict = {}
         res["x"] = self.x / game.width
         res["y"] = self.y / game.height
+        res["speed"] = math.sqrt(self.x_vel ** 2 + self.y_vel ** 2) / self.max_speed
         # res["x_vel"] = self.x_vel
         # res["y_vel"] = self.y_vel
 
