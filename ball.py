@@ -9,6 +9,8 @@ white = (255, 255, 255)
 black = (0, 0, 0)
 class Ball:
     def __init__(self, x, y, radius, win_width, win_height):
+        self.lastTouch = None
+        self.touchedWall = None
         self.x = x
         self.y = y
         self.win_width = win_width
@@ -98,7 +100,7 @@ class Ball:
                 if (goalAngle < 130):
                     goalAngle = 130
                     # print(f"    Angle corrected. now {goalAngle}")
-
+        self.lastTouch = "2"
         if math.sqrt(self.x_vel ** 2 + self.y_vel ** 2) < self.max_speed:
             self.x_vel = currentSpeed * 1.05 * math.cos(math.radians(goalAngle))
             self.y_vel = currentSpeed * 1.05 * math.sin(math.radians(goalAngle))
@@ -184,6 +186,8 @@ class Ball:
                     # print(f"    Angle corrected. now {goalAngle}")
                     self.x += 2
 
+        self.lastTouch = "1"
+
         if math.sqrt(self.x_vel ** 2 + self.y_vel ** 2) < self.max_speed:
             self.x_vel = currentSpeed * 1.05 * math.cos(math.radians(goalAngle))
             self.y_vel = currentSpeed * 1.05 * math.sin(math.radians(goalAngle))
@@ -225,8 +229,8 @@ class Ball:
             if tempBall.y - tempBall.radius <= 0 or tempBall.y + tempBall.radius >= self.win_height:
                 tempBall.y_vel = -tempBall.y_vel
 
-        # print(f"contact zone = [{tempBall.y - tempPaddle.height / 2}, {tempBall.y + tempPaddle.height / 2}]")
-        tempBall.y += random.uniform(-50, 50)
+        print(f"contact zone = [{tempBall.y - tempPaddle.height / 2}, {tempBall.y + tempPaddle.height / 2}], exact point = {tempBall.y}")
+        tempBall.y += random.uniform(-(paddle.height * 0.9 // 2), (paddle.height * 0.9 // 2))
         res.append(tempBall.y)
         return res # Retourne la position y correspondant
 
@@ -235,8 +239,9 @@ class Ball:
         res["x"] = self.x / game.width
         res["y"] = self.y / game.height
         res["speed"] = math.sqrt(self.x_vel ** 2 + self.y_vel ** 2) / self.max_speed
-        # res["x_vel"] = self.x_vel
-        # res["y_vel"] = self.y_vel
+        res["lastTouch"] = self.lastTouch
+        res["touchedWall"] = self.touchedWall
+        self.touchedWall = None
 
         return res
 

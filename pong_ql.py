@@ -29,7 +29,7 @@ class QL_AI:
     def getAction(self, state):
         # print(f"In get Action, state: {state}")
         if state not in self.qtable:
-            print("this state is not in qtable")
+            # print("this state is not in qtable")
             self.qtable[state] = np.zeros(3)
         self.epsilon_greedy()
         if self.training == True: #need to implement training modes
@@ -60,19 +60,20 @@ class QL_AI:
             nextCollision[1] += random.randint(-5, 5)
         if nextCollision[0] == 1:
             if action == 1:
-                if nextCollision[1] < previousPosition + self.paddle_height / 2:
+                if nextCollision[1] < previousPosition + self.paddle_height * 0.9:
                     result = maxReward * 2
                 else:
                     result = minReward * 2
             elif action == 2:
-                if nextCollision[1] > previousPosition + self.paddle_height / 2:
+                if nextCollision[1] > previousPosition + self.paddle_height * 0.9:
                     result = maxReward * 2
                 else:
                     result = minReward * 2
-            elif action == 0 and nextCollision[1] >= previousPosition and nextCollision[1] + self.paddle_height < previousPosition:
-                result = maxReward * 10
-            else:
-                result = minReward
+            elif action == 0:
+                if previousPosition <= nextCollision[1] <= previousPosition + self.paddle_height:
+                    result = maxReward * 2
+                else:
+                    result = minReward * 2
         else:
             if difficulty == 3:
                 if action == 1 and nextCollision[1] < previousPosition + self.paddle_height and previousPosition > self.win_height // 4:
@@ -89,9 +90,9 @@ class QL_AI:
                 else:
                     result = maxReward
 
-        # print(f"REWARD: {result}\n")
+        print(f"REWARD: {result}\n")
         return result
-    
+     
     def save(self, name):
         with open(f"AI_{name}.pkl", 'wb') as file:
             pickle.dump(self.qtable, file)

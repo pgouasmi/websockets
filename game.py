@@ -20,10 +20,12 @@ class Game:
 
         self.display = True
         self.CLI_controls = True
+        self.goal1 = False
+        self.goal2 = False
 
         self.ball: Ball = Ball(self.width // 2, self.height // 2, self.height // 100, self.width, self.height)
         self.paddle1: Paddle = Paddle(self.width // 30, self.height // 2 - 60, self.height // 150, self.height // 6, self.width, self.height)
-        self.paddle2: Paddle = Paddle(self.width - self.width // 15, self.height // 2 - 60, self.height // 50, self.height // 8.33, self.width, self.height)
+        self.paddle2: Paddle = Paddle(self.width - self.width // 30, self.height // 2 - 60, self.height // 150, self.height // 6, self.width, self.height)
 
         self.ai = QL_AI(self.width, self.height, self.paddle2.width, self.paddle2.height)
 
@@ -40,7 +42,7 @@ class Game:
         self.gameOver = False
 
         self.run = True
-        self.pause = False
+        self.pause = True
 
         self.currentTs = time.time()
         self.NewCalculusNeeded = True
@@ -172,22 +174,30 @@ class Game:
 
                 # Gestion des collisions avec les bords supérieur et inférieur
                 if ball.y - ball.radius <= 0 or ball.y + ball.radius >= self.height:
+                    if ball.y - ball.radius <= 0:
+                        ball.touchedWall = "top"
+                    else:
+                        ball.touchedWall = "bottom"
                     ball.y_vel = -ball.y_vel
 
                 # Vérification des points
                 if ball.x <= 0:
+                    self.goal2 = True
                     paddle2.score += 1
                     paddle1.canMove = True
                     paddle2.canMove = True
                     ball.reset()
                     self.NewCalculusNeeded = True
+                    self.pause = True
 
                 if ball.x >= self.width:
+                    self.goal1 = True
                     paddle1.score += 1
                     paddle1.canMove = True
                     paddle2.canMove = True
                     ball.reset()
                     self.NewCalculusNeeded = True
+                    self.pause = True
 
                 # print(f"qtable size: {ai.qtable.__sizeof__()}")
                 if self.display == True:
@@ -222,6 +232,7 @@ class Game:
                 self.ai.load('AI_testing.pkl')
             elif self.DIFFICULTY == 3:
                 self.ai.load("AI_hard.pkl")
+                print("hard AI loaded")
             elif self.DIFFICULTY == 2:
                 self.ai.load("AI_medium.pkl")
             elif self.DIFFICULTY == 1:
@@ -285,6 +296,14 @@ class Game:
             self.gameState["type"] = "gameover"
         else:
             self.gameState["type"] = "None"
+        if self.goal1 == True:
+            self.gameState["goal"] = "1"
+            self.goal1 = False
+        elif self.goal2 == True:
+            self.gameState["goal"] = "2"
+            self.goal2 = False
+        else:
+            self.gameState["goal"] = "None"
         if self.pause == False:
             self.gameState["game"] = self.gameSerialize()
             self.gameState["ball"] = self.ball.serialize(self)
