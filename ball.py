@@ -15,7 +15,7 @@ class Ball:
         self.y = y
         self.win_width = win_width
         self.win_height = win_height
-        self.max_speed = self.win_width * self.win_height // 300000
+        self.max_speed = self.win_width * self.win_height // 600000
         self.radius = radius
         # self.x_vel = self.max_speed
         self.x_vel = self.max_speed / 4
