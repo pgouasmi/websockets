@@ -23,7 +23,7 @@ class Game:
         self.goal1 = False
         self.goal2 = False
 
-        self.ball: Ball = Ball(self.width // 2, self.height // 2, self.height // 100, self.width, self.height)
+        self.ball: Ball = Ball(self.width // 2, self.height // 2, self.height // 100, self.width, self.height, self.display)
         self.paddle1: Paddle = Paddle(self.width // 30, self.height // 2 - 60, self.height // 150, self.height // 6, self.width, self.height)
         self.paddle2: Paddle = Paddle(self.width - self.width // 30, self.height // 2 - 60, self.height // 150, self.height // 6, self.width, self.height)
 

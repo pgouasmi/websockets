@@ -8,14 +8,17 @@ from paddle import Paddle
 white = (255, 255, 255)
 black = (0, 0, 0)
 class Ball:
-    def __init__(self, x, y, radius, win_width, win_height):
+    def __init__(self, x, y, radius, win_width, win_height, display):
         self.lastTouch = None
         self.touchedWall = None
         self.x = x
         self.y = y
         self.win_width = win_width
         self.win_height = win_height
-        self.max_speed = self.win_width * self.win_height // 600000
+        if display is True:
+            self.max_speed = self.win_width * self.win_height // 300000
+        else:
+            self.max_speed = self.win_width * self.win_height // 600000
         self.radius = radius
         # self.x_vel = self.max_speed
         self.x_vel = self.max_speed / 4
