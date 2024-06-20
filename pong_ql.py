@@ -78,9 +78,9 @@ class QL_AI:
             if difficulty == 3:
                 if action == 1 and nextCollision[1] < previousPosition + self.paddle_height and previousPosition > self.win_height // 4:
                     result = maxReward
-                elif action == 2 and nextCollision[1] > previousPosition + self.paddle_height and previousPosition < self.win_height  * 0.75:
+                elif action == 2 and nextCollision[1] > previousPosition + self.paddle_height and previousPosition + self.paddle_height < self.win_height * 0.75:
                     result = maxReward
-                elif action == 0 and abs(nextCollision[1] - previousPosition) < self.paddle_height:
+                elif action == 0 and abs(nextCollision[1] - previousPosition) < self.paddle_height and previousPosition > self.win_height // 4 and previousPosition + self.paddle_height < self.win_height * 0.75:
                     result = maxReward
                 else:
                     result = minReward
