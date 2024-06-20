@@ -15,10 +15,10 @@ class Ball:
         self.y = y
         self.win_width = win_width
         self.win_height = win_height
-        self.max_speed = self.win_width * self.win_height // 150000
+        self.max_speed = self.win_width * self.win_height // 500000
         self.radius = radius
-        # self.x_vel = self.max_speed
-        self.x_vel = self.max_speed / 10
+        self.x_vel = self.max_speed
+        # self.x_vel = self.max_speed / 5
         self.y_vel = 0
 
     def draw(self, win):
@@ -28,11 +28,23 @@ class Ball:
         self.x += self.x_vel
         self.y += self.y_vel
 
-    def reset(self):
+    def reset(self, x):
         self.x = self.win_width // 2
         self.y = self.win_height // 2
-        self.x_vel = self.max_speed / 10
-        self.y_vel = 0
+        if x > 0:
+            goalAngle = random.uniform(-30, 30)
+        else:
+            rng = random.choice((1, 2))
+            if rng == 1:
+                goalAngle = random.uniform(-150, -180)
+            else:
+                goalAngle = random.uniform(150, 180)
+        angle_rad = math.radians(goalAngle)
+        speed = self.max_speed / 10
+        self.x_vel = speed * math.cos(angle_rad)
+        self.y_vel = speed * math.sin(angle_rad)
+        # self.x_vel = self.max_speed / 10
+        # self.y_vel = 0
 
     # matrix
     #         -90

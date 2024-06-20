@@ -29,7 +29,7 @@ class QL_AI:
     def getAction(self, state):
         # print(f"In get Action, state: {state}")
         if state not in self.qtable:
-            # print("this state is not in qtable")
+            print("this state is not in qtable")
             self.qtable[state] = np.zeros(3)
         self.epsilon_greedy()
         if self.training == True: #need to implement training modes
@@ -60,20 +60,20 @@ class QL_AI:
             nextCollision[1] += random.randint(-5, 5)
         if nextCollision[0] == 1:
             if action == 1:
-                if nextCollision[1] < previousPosition + self.paddle_height * 0.9:
-                    result = maxReward * 2
+                if nextCollision[1] < (previousPosition + self.paddle_height // 2):
+                    result = maxReward
                 else:
-                    result = minReward * 2
+                    result = minReward
             elif action == 2:
-                if nextCollision[1] > previousPosition + self.paddle_height * 0.9:
-                    result = maxReward * 2
+                if nextCollision[1] > (previousPosition + self.paddle_height // 2):
+                    result = maxReward
                 else:
-                    result = minReward * 2
+                    result = minReward
             elif action == 0:
-                if previousPosition <= nextCollision[1] <= previousPosition + self.paddle_height:
-                    result = maxReward * 2
+                if previousPosition + self.paddle_height // 2 >= nextCollision[1] - 10 and previousPosition + self.paddle_height // 2 <= nextCollision[1] + 10:
+                    result = maxReward
                 else:
-                    result = minReward * 2
+                    result = minReward
         else:
             if difficulty == 3:
                 if action == 1 and nextCollision[1] < previousPosition + self.paddle_height and previousPosition > self.win_height // 4:

@@ -35,7 +35,7 @@ class Game:
         self.SAVING = True
         self.TRAINING = True
         self.TRAININGPARTNER = True
-        self.LOADING = False
+        self.LOADING = True
         self.testing = False
         self.lastDump = 0
         self.ai.training = self.TRAINING
@@ -69,12 +69,13 @@ class Game:
     def handlePauseResetQuit(self):
         for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+                    self.quit()
                     self.gameOver = True
                     self.run = False
         self.keys = pygame.key.get_pressed()
         keys = self.keys
         if keys[pygame.K_r]:
-            self.ball.reset()
+            self.ball.reset(1)
         if keys[pygame.K_ESCAPE]:
             self.gameOver = True
         if keys[pygame.K_SPACE]:
@@ -186,7 +187,7 @@ class Game:
                     paddle2.score += 1
                     paddle1.canMove = True
                     paddle2.canMove = True
-                    ball.reset()
+                    ball.reset(ball.x)
                     self.NewCalculusNeeded = True
 #                     self.pause = True
 
@@ -195,7 +196,7 @@ class Game:
                     paddle1.score += 1
                     paddle1.canMove = True
                     paddle2.canMove = True
-                    ball.reset()
+                    ball.reset(ball.x)
                     self.NewCalculusNeeded = True
 #                     self.pause = True
 
@@ -228,6 +229,8 @@ class Game:
 
     def init_ai(self):
         if self.LOADING == True:
+            self.ai.epsilon = 0
+            print("LOADING")
             if self.testing == True:
                 self.ai.load('AI_testing.pkl')
             elif self.DIFFICULTY == 3:
@@ -241,16 +244,17 @@ class Game:
     def getGameState(self):
         res = []
 
-        res.append(int(self.ball.x / 10))
-        res.append(int(self.ball.y / 10))
-        res.append(int(math.degrees(math.atan2(self.ball.y_vel, self.ball.x_vel))) / 10)
-        res.append(int((self.paddle2.y + self.paddle2.height / 2) / 10))
+        res.append(int(self.ball.x / 50))
+        res.append(int(self.ball.y / 50))
+        res.append(int(math.degrees(math.atan2(self.ball.y_vel, self.ball.x_vel))) / 50)
+        res.append(int((self.paddle2.y + self.paddle2.height / 2) / 50))
 
         return res
 
 
     def interactWithAI(self):
         newTS = time.time()
+        print(f"q_table size: {self.ai.qtable.__sizeof__()}")
         if self.TRAINING == False:
             # print(f"newTS: {newTS}, lastSentInfos: {self.lastSentInfos}\n")
             if (newTS - self.lastSentInfos >= 1):
@@ -275,10 +279,10 @@ class Game:
             # print("GOES DOWN")
 
         if self.TRAINING == True:
-            nextState = self.state
+            nextState = self.getGameState()
             reward = self.ai.getReward(self.nextCollision, res, prevY, self.DIFFICULTY)
             # print("states: ", self.state[1], self.state[3], self.nextState[1], self.nextState[3])
-            self.ai.upadateQTable(repr(self.state), res, reward, repr(self.nextState))
+            self.ai.upadateQTable(repr(self.state), res, reward, repr(nextState))
 
 
     def isgameover(self):

@@ -9,7 +9,7 @@ class Paddle:
         self.y = y
         self.width = width
         self.height = height
-        print(f"paddle height: {height}")
+        print(f"paddle height: {height}, width: {width}")
         self.win_width = win_width
         self.win_height = win_height
         self.vel = win_height / 333
