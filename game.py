@@ -18,7 +18,7 @@ class Game:
         self.white = (255, 255, 255)
         self.black = (0, 0, 0)
 
-        self.display = True
+        self.display = False
         self.CLI_controls = True
         self.goal1 = False
         self.goal2 = False
@@ -42,7 +42,7 @@ class Game:
         self.gameOver = False
 
         self.run = True
-        self.pause = True
+        self.pause = False
 
         self.currentTs = time.time()
         self.NewCalculusNeeded = True
@@ -189,7 +189,7 @@ class Game:
                     paddle2.canMove = True
                     ball.reset(ball.x)
                     self.NewCalculusNeeded = True
-                    self.pause = True
+#                     self.pause = True
 
                 if ball.x >= self.width:
                     self.goal1 = True
@@ -198,7 +198,7 @@ class Game:
                     paddle2.canMove = True
                     ball.reset(ball.x)
                     self.NewCalculusNeeded = True
-                    self.pause = True
+#                     self.pause = True
 
                 # print(f"qtable size: {ai.qtable.__sizeof__()}")
                 if self.display == True:
