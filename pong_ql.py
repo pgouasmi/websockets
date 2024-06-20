@@ -29,7 +29,7 @@ class QL_AI:
     def getAction(self, state):
         # print(f"In get Action, state: {state}")
         if state not in self.qtable:
-            print("this state is not in qtable")
+            # print("this state is not in qtable")
             self.qtable[state] = np.zeros(3)
         self.epsilon_greedy()
         if self.training == True: #need to implement training modes
@@ -90,7 +90,7 @@ class QL_AI:
                 else:
                     result = maxReward
 
-        print(f"REWARD: {result}\n")
+        # print(f"REWARD: {result}\n")
         return result
      
     def save(self, name):

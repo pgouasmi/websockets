@@ -15,10 +15,10 @@ class Ball:
         self.y = y
         self.win_width = win_width
         self.win_height = win_height
-        self.max_speed = self.win_width * self.win_height // 500000
+        self.max_speed = self.win_width * self.win_height // 300000
         self.radius = radius
-        self.x_vel = self.max_speed
-        # self.x_vel = self.max_speed / 5
+        # self.x_vel = self.max_speed
+        self.x_vel = self.max_speed / 4
         self.y_vel = 0
 
     def draw(self, win):
@@ -40,7 +40,7 @@ class Ball:
             else:
                 goalAngle = random.uniform(150, 180)
         angle_rad = math.radians(goalAngle)
-        speed = self.max_speed / 10
+        speed = self.max_speed / 4
         self.x_vel = speed * math.cos(angle_rad)
         self.y_vel = speed * math.sin(angle_rad)
         # self.x_vel = self.max_speed / 10
@@ -113,15 +113,27 @@ class Ball:
                     goalAngle = 130
                     # print(f"    Angle corrected. now {goalAngle}")
         self.lastTouch = "2"
-        if math.sqrt(self.x_vel ** 2 + self.y_vel ** 2) < self.max_speed:
-            self.x_vel = currentSpeed * 1.05 * math.cos(math.radians(goalAngle))
-            self.y_vel = currentSpeed * 1.05 * math.sin(math.radians(goalAngle))
-            if (arete):
-                self.x_vel *= 2
-                self.y_vel *= 2
-            if (abs(goalAngle) > 180 - 20 and math.sqrt(self.x_vel ** 2 + self.y_vel ** 2) < self.max_speed):
-                self.x_vel *= 1.1
-                self.y_vel *= 1.1
+        # if math.sqrt(self.x_vel ** 2 + self.y_vel ** 2) < self.max_speed:
+        #     self.x_vel = currentSpeed * 1.05 * math.cos(math.radians(goalAngle))
+        #     self.y_vel = currentSpeed * 1.05 * math.sin(math.radians(goalAngle))
+        #     if (arete):
+        #         self.x_vel *= 2
+        #         self.y_vel *= 2
+        #     if (abs(goalAngle) > 180 - 20 and math.sqrt(self.x_vel ** 2 + self.y_vel ** 2) < self.max_speed):
+        #         self.x_vel *= 1.1
+        #         self.y_vel *= 1.1
+
+        self.x_vel = currentSpeed * 1.05 * math.cos(math.radians(goalAngle))
+        self.y_vel = currentSpeed * 1.05 * math.sin(math.radians(goalAngle))
+        if (arete):
+            self.x_vel *= 2
+            self.y_vel *= 2
+        if (abs(goalAngle) > 180 - 20 and math.sqrt(self.x_vel ** 2 + self.y_vel ** 2) < self.max_speed):
+            self.x_vel *= 1.1
+            self.y_vel *= 1.1
+        if math.sqrt(self.x_vel ** 2 + self.y_vel ** 2) > self.max_speed:
+            self.x_vel = self.x_vel / math.sqrt(self.x_vel ** 2 + self.y_vel ** 2) * self.max_speed
+            self.y_vel = self.y_vel / math.sqrt(self.x_vel ** 2 + self.y_vel ** 2) * self.max_speed
 
     def updateTrajectoryP1(self, paddle):
 
@@ -200,15 +212,27 @@ class Ball:
 
         self.lastTouch = "1"
 
-        if math.sqrt(self.x_vel ** 2 + self.y_vel ** 2) < self.max_speed:
-            self.x_vel = currentSpeed * 1.05 * math.cos(math.radians(goalAngle))
-            self.y_vel = currentSpeed * 1.05 * math.sin(math.radians(goalAngle))
-            if (arete):
-                self.x_vel *= 2
-                self.y_vel *= 2
-            if (abs(goalAngle) > 180 - 20 and math.sqrt(self.x_vel ** 2 + self.y_vel ** 2) < self.max_speed):
-                self.x_vel *= 1.1
-                self.y_vel *= 1.1
+        # if math.sqrt(self.x_vel ** 2 + self.y_vel ** 2) < self.max_speed:
+        #     self.x_vel = currentSpeed * 1.05 * math.cos(math.radians(goalAngle))
+        #     self.y_vel = currentSpeed * 1.05 * math.sin(math.radians(goalAngle))
+        #     if (arete):
+        #         self.x_vel *= 2
+        #         self.y_vel *= 2
+        #     if (abs(goalAngle) > 180 - 20 and math.sqrt(self.x_vel ** 2 + self.y_vel ** 2) < self.max_speed):
+        #         self.x_vel *= 1.1
+        #         self.y_vel *= 1.1
+
+        self.x_vel = currentSpeed * 1.05 * math.cos(math.radians(goalAngle))
+        self.y_vel = currentSpeed * 1.05 * math.sin(math.radians(goalAngle))
+        if (arete):
+            self.x_vel *= 2
+            self.y_vel *= 2
+        if (abs(goalAngle) > 180 - 20 and math.sqrt(self.x_vel ** 2 + self.y_vel ** 2) < self.max_speed):
+            self.x_vel *= 1.1
+            self.y_vel *= 1.1
+        if math.sqrt(self.x_vel ** 2 + self.y_vel ** 2) > self.max_speed:
+            self.x_vel = self.x_vel / math.sqrt(self.x_vel ** 2 + self.y_vel ** 2) * self.max_speed
+            self.y_vel = self.y_vel / math.sqrt(self.x_vel ** 2 + self.y_vel ** 2) * self.max_speed
                 
         # pygame.time.delay(20)
 

@@ -254,17 +254,17 @@ class Game:
 
     def interactWithAI(self):
         newTS = time.time()
-        print(f"q_table size: {self.ai.qtable.__sizeof__()}")
+        # print(f"q_table size: {self.ai.qtable.__sizeof__()}")
         if self.TRAINING == False:
             # print(f"newTS: {newTS}, lastSentInfos: {self.lastSentInfos}\n")
             if (newTS - self.lastSentInfos >= 1):
                 self.lastSentInfos = newTS
                 self.state = self.getGameState()
-                print("NEW STATE: ", self.state)
+                # print("NEW STATE: ", self.state)
         else:
             self.state = self.getGameState()
         res = self.ai.getAction(repr(self.state))
-        print(f"AI RES: {res}\n")
+        # print(f"AI RES: {res}\n")
 
         prevY = self.paddle2.y
 
