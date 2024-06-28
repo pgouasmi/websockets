@@ -18,7 +18,7 @@ class Ball:
         if display is True:
             self.max_speed = self.win_width * self.win_height // 350000
         else:
-            self.max_speed = self.win_width * self.win_height // 600000
+            self.max_speed = self.win_width * self.win_height // 700000
         self.radius = radius
         # self.x_vel = self.max_speed
         self.x_vel = self.max_speed / 3
