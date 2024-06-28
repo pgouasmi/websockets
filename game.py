@@ -30,11 +30,11 @@ class Game:
         self.ai = QL_AI(self.width, self.height, self.paddle2.width, self.paddle2.height)
 
         self.scoreLimit = 3
-        self.DIFFICULTY = 2
-        self.RUNNING_AI = True
+        self.DIFFICULTY = 3
+        self.RUNNING_AI = False
         self.SAVING = True
         self.TRAINING = True
-        self.TRAININGPARTNER = True
+        self.TRAININGPARTNER = False
         self.LOADING = True
         self.testing = False
         self.lastDump = 0
@@ -163,6 +163,8 @@ class Game:
 
                 ball.move()
 
+                ball.friction()
+
                 # Gestion des collisions avec les raquettes
                 if ball.check_collision(paddle1):
                     ball.updateTrajectoryP1(paddle1)
@@ -267,8 +269,8 @@ class Game:
         # print(f"AI RES: {res}\n")
 
         prevY = self.paddle2.y
-        if random.choice([True, False]) == True:
-            res = 0
+        # if random.choice([True, False]) == True:
+        #     res = 0
         if res == 0:
             pass
             # print("STAYS STILL")

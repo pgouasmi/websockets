@@ -16,13 +16,14 @@ class Ball:
         self.win_width = win_width
         self.win_height = win_height
         if display is True:
-            self.max_speed = self.win_width * self.win_height // 300000
+            self.max_speed = self.win_width * self.win_height // 350000
         else:
             self.max_speed = self.win_width * self.win_height // 600000
         self.radius = radius
         # self.x_vel = self.max_speed
-        self.x_vel = self.max_speed / 4
+        self.x_vel = self.max_speed / 3
         self.y_vel = 0
+        self.frictionTimestamp = time.time()
 
     def draw(self, win):
         pygame.draw.circle(win, white, (self.x, self.y), self.radius)
@@ -43,7 +44,7 @@ class Ball:
             else:
                 goalAngle = random.uniform(150, 180)
         angle_rad = math.radians(goalAngle)
-        speed = self.max_speed / 4
+        speed = self.max_speed / 3
         self.x_vel = speed * math.cos(angle_rad)
         self.y_vel = speed * math.sin(angle_rad)
         # self.x_vel = self.max_speed / 10
@@ -126,14 +127,20 @@ class Ball:
         #         self.x_vel *= 1.1
         #         self.y_vel *= 1.1
 
-        self.x_vel = currentSpeed * 1.05 * math.cos(math.radians(goalAngle))
-        self.y_vel = currentSpeed * 1.05 * math.sin(math.radians(goalAngle))
+        # self.x_vel = currentSpeed * 1.5 * math.cos(math.radians(goalAngle))
+        # self.y_vel = currentSpeed * 1.5 * math.sin(math.radians(goalAngle))
+
+        self.x_vel = currentSpeed * (1 + (1 * (1-(currentSpeed / self.max_speed)))) * math.cos(math.radians(goalAngle))
+        self.y_vel = currentSpeed * (1 + (1 * (1 - (currentSpeed / self.max_speed)))) * math.sin(math.radians(goalAngle))
+        # print(f"max speed: {self.max_speed}, current speed: {currentSpeed}")
+        # print(f"calculus: {(1 + 0.5 * (1-(currentSpeed / self.max_speed)))}")
+
         if (arete):
             self.x_vel *= 2
             self.y_vel *= 2
         if (abs(goalAngle) > 180 - 20 and math.sqrt(self.x_vel ** 2 + self.y_vel ** 2) < self.max_speed):
-            self.x_vel *= 1.1
-            self.y_vel *= 1.1
+            self.x_vel *= 1.2
+            self.y_vel *= 1.2
         if math.sqrt(self.x_vel ** 2 + self.y_vel ** 2) > self.max_speed:
             self.x_vel = self.x_vel / math.sqrt(self.x_vel ** 2 + self.y_vel ** 2) * self.max_speed
             self.y_vel = self.y_vel / math.sqrt(self.x_vel ** 2 + self.y_vel ** 2) * self.max_speed
@@ -225,14 +232,16 @@ class Ball:
         #         self.x_vel *= 1.1
         #         self.y_vel *= 1.1
 
-        self.x_vel = currentSpeed * 1.05 * math.cos(math.radians(goalAngle))
-        self.y_vel = currentSpeed * 1.05 * math.sin(math.radians(goalAngle))
+        # self.x_vel = currentSpeed * 1.4 * math.cos(math.radians(goalAngle))
+        # self.y_vel = currentSpeed * 1.4 * math.sin(math.radians(goalAngle))
+        self.x_vel = currentSpeed * (1 + (1* (1-(currentSpeed / self.max_speed)))) * math.cos(math.radians(goalAngle))
+        self.y_vel = currentSpeed * (1 + (1 * (1 - (currentSpeed / self.max_speed)))) * math.sin(math.radians(goalAngle))
         if (arete):
             self.x_vel *= 2
             self.y_vel *= 2
         if (abs(goalAngle) > 180 - 20 and math.sqrt(self.x_vel ** 2 + self.y_vel ** 2) < self.max_speed):
-            self.x_vel *= 1.1
-            self.y_vel *= 1.1
+            self.x_vel *= 1.2
+            self.y_vel *= 1.2
         if math.sqrt(self.x_vel ** 2 + self.y_vel ** 2) > self.max_speed:
             self.x_vel = self.x_vel / math.sqrt(self.x_vel ** 2 + self.y_vel ** 2) * self.max_speed
             self.y_vel = self.y_vel / math.sqrt(self.x_vel ** 2 + self.y_vel ** 2) * self.max_speed
@@ -283,5 +292,11 @@ class Ball:
         self.touchedWall = None
 
         return res
+    
+    def friction(self):
+        if time.time() - self.frictionTimestamp > 0.4:
+            self.frictionTimestamp = time.time()
+            self.x_vel = self.x_vel * 0.93
+            self.y_vel = self.y_vel * 0.93
 
 
