@@ -18,7 +18,7 @@ class Game:
         self.white = (255, 255, 255)
         self.black = (0, 0, 0)
 
-        self.display = True
+        self.display = False
         self.CLI_controls = True
         self.goal1 = False
         self.goal2 = False
@@ -30,11 +30,11 @@ class Game:
         self.ai = QL_AI(self.width, self.height, self.paddle2.width, self.paddle2.height)
 
         self.scoreLimit = 3
-        self.DIFFICULTY = 3
-        self.RUNNING_AI = False
+        self.DIFFICULTY = 2
+        self.RUNNING_AI = True
         self.SAVING = True
         self.TRAINING = True
-        self.TRAININGPARTNER = False
+        self.TRAININGPARTNER = True
         self.LOADING = True
         self.testing = False
         self.lastDump = 0
@@ -269,8 +269,8 @@ class Game:
         # print(f"AI RES: {res}\n")
 
         prevY = self.paddle2.y
-        # if random.choice([True, False]) == True:
-        #     res = 0
+#         if random.choice([1, 2, 3, 4, 5]) != 1:
+#             res = 0
         if res == 0:
             pass
             # print("STAYS STILL")
