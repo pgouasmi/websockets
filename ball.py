@@ -9,7 +9,7 @@ white = (255, 255, 255)
 black = (0, 0, 0)
 class Ball:
     def __init__(self, x, y, radius, win_width, win_height, display):
-        self.lastTouch = None
+        self.lastTouch = 0
         self.touchedWall = None
         self.x = x
         self.y = y

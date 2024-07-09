@@ -19,7 +19,7 @@ class Game:
         self.black = (0, 0, 0)
 
         self.display = False
-        self.CLI_controls = True
+        self.CLI_controls = False
         self.goal1 = False
         self.goal2 = False
 
@@ -34,7 +34,7 @@ class Game:
         self.RUNNING_AI = True
         self.SAVING = True
         self.TRAINING = True
-        self.TRAININGPARTNER = True
+        self.TRAININGPARTNER = False
         self.LOADING = True
         self.testing = False
         self.lastDump = 0

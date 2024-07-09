@@ -1,66 +1,70 @@
-# from game import Game
-# import asyncio
-# import websockets
-# import json
-
-# class GameOverException(Exception):
-#     pass
-
-# async def handler(websocket):
-#     game = Game()
-#     # receiving data
-#     async for message in websocket:
-#         event = json.loads(message)
-#         if event["type"] == "start":
-#             async for state in game.rungame():
-#                 state = json.loads(state)
-#                 await websocket.send(json.dumps(state))
-#                 if state["type"] == "gameover":
-#                     game.quit()
-#                     raise GameOverException()
-#         # print(message)
-
-        
-
-# async def main():
-#     try:
-#         async with websockets.serve(handler, "", 8001):
-#             await asyncio.Future()  # run forever
-#     except GameOverException:
-#         print("Game Over")
-
-
-# if __name__ == "__main__":
-#     asyncio.run(main())
-
-
-from game import Game
 import asyncio
 import websockets
 import json
+from game import Game
 
 game_over = asyncio.Queue()
 
+
+async def listen_for_messages(websocket, game, start_event):
+    async for message in websocket:
+        print("New message received")
+        event = json.loads(message)
+        if event["type"] == "keyDown":
+            await handleFrontInput(game, event)
+        elif event["type"] == "start":
+            # Signal pour démarrer la génération des états du jeu
+            start_event.set()
+        await asyncio.sleep(0.00000001)
+
+
+async def handleFrontInput(game, event):
+    print(event)
+    if event["event"] == "pause":
+        game.pause = not game.pause
+    elif event["event"] == "player1Up":
+        for i in range(10):
+            game.paddle1.move(game.height, up=True)
+    elif event["event"] == "player1Down":
+        for i in range(10):
+            game.paddle1.move(game.height, up=False)
+
+
+async def generate_states(game, websocket, start_event):
+    await start_event.wait()
+    async for state in game.rungame():
+        print("new state")
+        state = json.dumps(json.loads(state))
+        await websocket.send(state)
+        await asyncio.sleep(0.00000001)
+
+
 async def handler(websocket):
     game = Game()
-    # receiving data
-    async for message in websocket:
-        event = json.loads(message)
-        if event["type"] == "start":
-            game.handleArguments(event)
-            async for state in game.rungame():
-                state = json.loads(state)
-                await websocket.send(json.dumps(state))
-                if state["type"] == "gameover":
-                    game.quit()
-                    await game_over.put('gameover')
-                    return
+    start_event = asyncio.Event()
+    listener_task = asyncio.create_task(listen_for_messages(websocket, game, start_event))
+    state_generator_task = asyncio.create_task(generate_states(game, websocket, start_event))
+
+    # Attendre l'événement "start" avant de démarrer la génération des états
+    # await start_event.wait()
+    await asyncio.gather(listener_task, state_generator_task)
+
+    # done, pending = await asyncio.wait(
+    #     [listener_task, state_generator_task],
+    #     return_when=asyncio.FIRST_COMPLETED
+    # )
+
+    for task in pending:
+        task.cancel()  # Annuler les tâches en attente si une tâche se termine
+
 
 async def main():
     server = await websockets.serve(handler, "", 8001)
-    await game_over.get()  # wait for 'gameover'
+    await game_over.get()  # Attendre le signal de fin de jeu
     server.close()
     await server.wait_closed()
 
+
 if __name__ == "__main__":
     asyncio.run(main())
+
