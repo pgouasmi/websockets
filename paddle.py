@@ -4,12 +4,12 @@ white = (255, 255, 255)
 black = (0, 0, 0)
 
 class Paddle:
+    
     def __init__(self, x, y, width, height, win_width, win_height):
         self.x = x
         self.y = y
         self.width = width
         self.height = height
-        print(f"paddle height: {height}, width: {width}")
         self.win_width = win_width
         self.win_height = win_height
         self.vel = win_height / 333

@@ -8,7 +8,7 @@ game_over = asyncio.Queue()
 
 async def listen_for_messages(websocket, game, start_event):
     async for message in websocket:
-        print("New message received")
+        # print("New message received")
         event = json.loads(message)
         if event["type"] == "keyDown":
             await handleFrontInput(game, event)

@@ -3,6 +3,7 @@ import pickle
 import random
 
 class QL_AI:
+    
     def __init__(self, width, height, paddle_width, paddle_height) -> None:
         self.win_width = width
         self.win_height = height
@@ -19,6 +20,7 @@ class QL_AI:
         self.average = []
         self.name = "Test"
 
+
     def epsilon_greedy(self):
         if self.epsilon == self.epsilon_min:
             return
@@ -26,6 +28,7 @@ class QL_AI:
         if self.epsilon < self.epsilon_min:
             self.epsilon = self.epsilon_min
     
+
     def getClosestState(self, state):
         closest_state = None
         previous_state = None
@@ -39,31 +42,29 @@ class QL_AI:
                     return closest_state
         return closest_state
 
-    def getAction(self, state):
-        print(f"In get Action, state: {state}")  
-        if state not in self.qtable:
-            print("this state is not in qtable")
-            # state = self.getClosestState(state)
-            self.qtable[state] = np.zeros(3)
-            print(f"qatble size: {len(self.qtable)}")
-        self.epsilon_greedy()
 
-        if self.training == True: #need to implement training modes
+    def getAction(self, state):
+        if state not in self.qtable:
+            self.qtable[state] = np.zeros(3)
+        self.epsilon_greedy()
+        if self.training == True:
             if np.random.uniform() < self.epsilon:
                 action = np.random.choice(3)
             else:
                 action = np.argmax(self.qtable[state])
         else:
             action = np.argmax(self.qtable[state])
-        
         return action
     
+
     def upadateQTable(self, state, action, reward, nextState):
+
         if nextState not in self.qtable:
             self.qtable[nextState] = np.zeros(3)
         tdTarget = reward + self.gamma * np.max(self.qtable[nextState])
         tdError = tdTarget - self.qtable[state][action]
         self.qtable[state][action] += self.alpha * tdError
+
 
     def getReward(self, nextCollision, action, previousPosition, difficulty):
 
@@ -71,7 +72,6 @@ class QL_AI:
         minReward = -10
         result:int = 0
 
-        # print(f"nextCollision: {nextCollision}")
         if difficulty == 1:
             nextCollision[1] += random.randint(-5, 5)
         if nextCollision[0] == 1:
@@ -106,7 +106,6 @@ class QL_AI:
                 else:
                     result = maxReward
 
-        # print(f"REWARD: {result}\n")
         return result
      
     def save(self, name):

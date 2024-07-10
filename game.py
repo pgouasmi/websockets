@@ -11,61 +11,63 @@ import asyncio
 
 
 class Game:
+
     def __init__(self):
-        # print("Game constructor")
         self.width = 1500
         self.height = 1000
         self.white = (255, 255, 255)
         self.black = (0, 0, 0)
 
+        # CLI and rendering options
         self.display = True
         self.CLI_controls = True
-        self.goal1 = False
-        self.goal2 = False
+        if self.display == True or self.CLI_controls == True:
+            pygame.init()
+            if self.display == True:
+                self.win = pygame.display.set_mode((self.width, self.height))
+                pygame.display.set_caption("Pong")
 
+        # Init objects
         self.ball: Ball = Ball(self.width // 2, self.height // 2, self.height // 100, self.width, self.height, self.display)
         self.paddle1: Paddle = Paddle(self.width // 30, self.height // 2 - 60, self.height // 150, self.height // 6, self.width, self.height)
         self.paddle2: Paddle = Paddle(self.width - self.width // 30, self.height // 2 - 60, self.height // 150, self.height // 6, self.width, self.height)
-
         self.ai = QL_AI(self.width, self.height, self.paddle2.width, self.paddle2.height)
 
-        self.scoreLimit = 10000000
-        self.DIFFICULTY = 3
+        # AI settings
         self.RUNNING_AI = True
+        self.DIFFICULTY = 3
         self.SAVING = True
         self.TRAINING = False
-        self.TRAININGPARTNER = True
+        self.TRAININGPARTNER = False
         self.LOADING = True
         self.testing = True
         self.lastDump = 0
         self.ai.training = self.TRAINING
         self.gameOver = False
 
+        self.init_ai()
+
+        # game related variables
+        self.scoreLimit = 10000000
         self.run = True
         self.pause = False
-
+        self.goal1 = False
+        self.goal2 = False
         self.currentTs = time.time()
         self.NewCalculusNeeded = True
         self.pauseCoolDown = self.currentTs
         self.lastSentInfos = 0
         self.gameState = {}
         self.are_args_set = False
-
-        self.init_ai()
-        if self.display == True or self.CLI_controls == True:
-            pygame.init()
-            if self.display == True:
-                self.win = pygame.display.set_mode((self.width, self.height))
-                pygame.display.set_caption("Pong")
         self.last_frame_time = 0
         self.state = self.getGameState()
-        print(f"init, self.state: {self.state}")
-        # self.rungame()
+
 
     def handleArguments(self, event):
         print(event)
         # handling the argumemnts -> if OK ->
         self.are_args_set = True
+
 
     def handlePauseResetQuit(self):
         for event in pygame.event.get():
@@ -106,6 +108,7 @@ class Game:
         if keys[pygame.K_DOWN] and self.paddle2.canMove == True:
             self.paddle2.move(self.height, up=False)
 
+
     def save_qtable(self):
         ai = self.ai
 
@@ -120,15 +123,65 @@ class Game:
             ai.save('easy')
 
 
+    def handle_inputs(self):
+        if self.TRAININGPARTNER == False:
+            if self.display == True:
+                self.handlePlayer1Inputs()
+        else:
+            self.paddle1.y = self.nextCollision[1] - self.paddle1.height // 2
+        if not self.RUNNING_AI:
+            if self.CLI_controls == True:
+                self.handlePlayer2Inputs()
+        else:
+            self.interactWithAI()
+
+
+    def handle_collisions_on_paddle(self):
+        # Gestion des collisions avec les raquettes
+        if self.ball.check_collision(self.paddle1):
+            self.ball.updateTrajectoryP1(self.paddle1)
+            self.NewCalculusNeeded = True
+        if self.ball.check_collision(self.paddle2):
+            # print(f"onpaddle2, px: {paddle2.x}, py: [{paddle2.y}, {paddle2.y + paddle2.height}]\n")
+            self.ball.updateTrajectoryP2(self.paddle2)
+            self.NewCalculusNeeded = True
+
+    
+    def handle_collisions_on_border(self):
+        if self.ball.y - self.ball.radius <= 0 or self.ball.y + self.ball.radius >= self.height:
+            if self.ball.y - self.ball.radius <= 0:
+                self.ball.touchedWall = "top"
+            else:
+                self.ball.touchedWall = "bottom"
+            self.ball.y_vel = -self.ball.y_vel
+
+
+    def handle_scores(self):
+        if self.ball.x <= 0:
+            self.goal2 = True
+            self.paddle2.score += 1
+            self.paddle1.canMove = True
+            self.paddle2.canMove = True
+            self.ball.reset(self.ball.x)
+            self.NewCalculusNeeded = True
+            self.state = self.getGameState()
+
+        if self.ball.x >= self.width:
+            self.goal1 = True
+            self.paddle1.score += 1
+            self.paddle1.canMove = True
+            self.paddle2.canMove = True
+            self.ball.reset(self.ball.x)
+            self.NewCalculusNeeded = True
+            self.state = self.getGameState()
+
+
     async def rungame(self):
         ball = self.ball
         paddle1 = self.paddle1
         paddle2 = self.paddle2
-        ai = self.ai
-
 
         while self.run:
-
             current_time = time.time()
 
             if self.NewCalculusNeeded == True:
@@ -140,86 +193,37 @@ class Game:
                     half_height = paddle2.height // 2
                     paddle1.y = self.nextCollision[1] + random.uniform(-half_height, half_height) - half_height
                 self.NewCalculusNeeded = False
-                
-            # self.state = None
-            # self.nextState = None
 
             pygame.time.delay(1)
+
             if self.CLI_controls == True:
                 self.handlePauseResetQuit()
 
             if not self.pause:
 
-                if self.TRAININGPARTNER == False:
-                    if self.display == True:
-                        self.handlePlayer1Inputs()
-                else:
-                    self.paddle1.y = self.nextCollision[1] - self.paddle1.height // 2
-
-                if not self.RUNNING_AI:
-                    if self.CLI_controls == True:
-                        self.handlePlayer2Inputs()
-                else:
-                    self.interactWithAI()
-
+                self.handle_inputs()
                 ball.move()
-
                 ball.friction()
+                self.handle_collisions_on_paddle()
+                self.handle_collisions_on_border()
+                self.handle_scores()
 
-                # Gestion des collisions avec les raquettes
-                if ball.check_collision(paddle1):
-                    ball.updateTrajectoryP1(paddle1)
-                    self.NewCalculusNeeded = True
-
-                if ball.check_collision(paddle2):
-                    # print(f"onpaddle2, px: {paddle2.x}, py: [{paddle2.y}, {paddle2.y + paddle2.height}]\n")
-                    ball.updateTrajectoryP2(paddle2)
-                    self.NewCalculusNeeded = True
-
-                # Gestion des collisions avec les bords supérieur et inférieur
-                if ball.y - ball.radius <= 0 or ball.y + ball.radius >= self.height:
-                    if ball.y - ball.radius <= 0:
-                        ball.touchedWall = "top"
-                    else:
-                        ball.touchedWall = "bottom"
-                    ball.y_vel = -ball.y_vel
-
-                # Vérification des points
-                if ball.x <= 0:
-                    self.goal2 = True
-                    paddle2.score += 1
-                    paddle1.canMove = True
-                    paddle2.canMove = True
-                    ball.reset(ball.x)
-                    self.NewCalculusNeeded = True
-                    self.state = self.getGameState()
-#                     self.pause = True
-
-                if ball.x >= self.width:
-                    self.goal1 = True
-                    paddle1.score += 1
-                    paddle1.canMove = True
-                    paddle2.canMove = True
-                    ball.reset(ball.x)
-                    self.NewCalculusNeeded = True
-                    self.state = self.getGameState()
-#                     self.pause = True
-
-                # print(f"qtable size: {ai.qtable.__sizeof__()}")
                 if self.display == True:
                     self.redraw_window()
 
-                # send JSON game state
+            # send JSON game state
             if current_time - self.last_frame_time >= 1/60 or self.isgameover() == True:
                 self.serialize()
                 self.last_frame_time = current_time
                 yield json.dumps(self.gameState)
+
 
     def quit(self):
         if self.SAVING == True:
             self.save_qtable()
         if self.display == True or self.CLI_controls:
             pygame.quit()
+
 
     def redraw_window(self):
         self.win.fill(self.black)
@@ -228,9 +232,11 @@ class Game:
         self.ball.draw(self.win)
         pygame.display.update()
 
+
     def resetPaddles(self):
         self.paddle1.y = self.height // 2
         self.paddle2.y = self.height // 2
+
 
     def init_ai(self):
         if self.LOADING == True:
@@ -245,7 +251,7 @@ class Game:
                 self.ai.load("AI_medium.pkl")
             elif self.DIFFICULTY == 1:
                 self.ai.load("AI_easy.pkl")
-            print(f"qatble size: {self.ai.qtable.__sizeof__()}")
+
 
     def getGameState(self):
         res = []
@@ -254,77 +260,45 @@ class Game:
         res.append(int(self.ball.y / 50))
         res.append(int(math.atan2(self.ball.y_vel, self.ball.x_vel)))
         res.append(int((self.paddle2.y + self.paddle2.height / 2) / 50))
-        print(f"return getGamestate: {res}")
+        # print(f"return getGamestate: {res}")
 
         return res
 
 
     def interactWithAI(self):
         newTS = time.time()
-        print(f"in interact, self.state = {self.state}\n\n")
-        # print(f"q_table size: {self.ai.qtable.__sizeof__()}")
         if self.TRAINING == False:
-            # print(f"newTS: {newTS}, lastSentInfos: {self.lastSentInfos}\n")
             if (newTS - self.lastSentInfos >= 1):
                 self.lastSentInfos = newTS
                 self.state = self.getGameState()
-                print("NEW SECOND, NEW STATE: ", self.state)
         else:
             self.state = self.getGameState()
         res = self.ai.getAction(repr(self.state))
-        print(f"AI RES: {res} on state {self.state}\n")
 
         prevY = self.paddle2.y
 #         if random.choice([1, 2, 3, 4, 5]) != 1:
 #             res = 0
         if res == 0:
             pass
-            # print("STAYS STILL")
         if res == 1 and self.paddle2.canMove == True:
             self.paddle2.move(self.height, up=True)
-            # print("GOES UP")
         if res == 2 and self.paddle2.canMove == True:
             self.paddle2.move(self.height, up=False)
-            # print("GOES DOWN")
+
+        # if self.TRAINING == True:
+        #     nextState = self.getGameState()
+        #     reward = self.ai.getReward(self.nextCollision, res, prevY, self.DIFFICULTY)
+        #     self.ai.upadateQTable(repr(self.state), res, reward, repr(nextState))
+
+        # self.state[3] = (int((self.paddle2.y + self.paddle2.height / 2) / 50))
 
         # if self.TRAINING == True:
         nextState = self.getGameState()
+        # else:
+        #     nextState = self.state
         reward = self.ai.getReward(self.nextCollision, res, prevY, self.DIFFICULTY)
-        # print("states: ", self.state[1], self.state[3], self.nextState[1], self.nextState[3])
         self.ai.upadateQTable(repr(self.state), res, reward, repr(nextState))
         self.state[3] = (int((self.paddle2.y + self.paddle2.height / 2) / 50))
-
-    # def interactWithAI(self):
-    #     newTS = time.time()
-    #     if self.TRAINING == False:
-    #         if (newTS - self.lastSentInfos >= 1):
-    #             self.lastSentInfos = newTS
-    #             # Mise à jour du game state seulement si une seconde s'est écoulée
-    #             if (newTS - self.lastSentInfos >= 1):
-    #                 self.lastSentInfos = newTS
-    #                 self.state = self.getGameState()
-    #                 print("NEW STATE: ", self.state)
-    #     else:
-    #         # Pour le mode TRAINING, vérifiez également si une seconde s'est écoulée avant de mettre à jour
-    #         if (newTS - self.lastSentInfos >= 1):
-    #             self.lastSentInfos = newTS
-    #             self.state = self.getGameState()
-
-    #     res = self.ai.getAction(repr(self.state))
-    #     # print(f"res = {res}")
-
-    #     prevY = self.paddle2.y
-    #     if res == 0:
-    #         pass
-    #     if res == 1 and self.paddle2.canMove == True:
-    #         self.paddle2.move(self.height, up=True)
-    #     if res == 2 and self.paddle2.canMove == True:
-    #         self.paddle2.move(self.height, up=False)
-
-    #     if self.TRAINING == True and (newTS - self.lastSentInfos >= 1):
-    #         nextState = self.getGameState()
-    #         reward = self.ai.getReward(self.nextCollision, res, prevY, self.DIFFICULTY)
-    #         self.ai.upadateQTable(repr(self.state), res, reward, repr(nextState))
 
 
     def isgameover(self):
@@ -356,12 +330,15 @@ class Game:
             self.gameState["paddle1"] = self.paddle1.serialize(self)
             self.gameState["paddle2"] = self.paddle2.serialize(self)
     
+
     def gameSerialize(self):
         res:dict = {}
+
         res["scoreLimit"] = self.scoreLimit
         res["pause"] = self.pause
 
         return res
+
 
     def update(self):
         pass
