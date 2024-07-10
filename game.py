@@ -18,8 +18,8 @@ class Game:
         self.white = (255, 255, 255)
         self.black = (0, 0, 0)
 
-        self.display = False
-        self.CLI_controls = False
+        self.display = True
+        self.CLI_controls = True
         self.goal1 = False
         self.goal2 = False
 
@@ -29,14 +29,14 @@ class Game:
 
         self.ai = QL_AI(self.width, self.height, self.paddle2.width, self.paddle2.height)
 
-        self.scoreLimit = 3
-        self.DIFFICULTY = 2
+        self.scoreLimit = 10000000
+        self.DIFFICULTY = 3
         self.RUNNING_AI = True
         self.SAVING = True
-        self.TRAINING = True
-        self.TRAININGPARTNER = False
+        self.TRAINING = False
+        self.TRAININGPARTNER = True
         self.LOADING = True
-        self.testing = False
+        self.testing = True
         self.lastDump = 0
         self.ai.training = self.TRAINING
         self.gameOver = False
@@ -58,8 +58,9 @@ class Game:
                 self.win = pygame.display.set_mode((self.width, self.height))
                 pygame.display.set_caption("Pong")
         self.last_frame_time = 0
+        self.state = self.getGameState()
+        print(f"init, self.state: {self.state}")
         # self.rungame()
-
 
     def handleArguments(self, event):
         print(event)
@@ -140,8 +141,8 @@ class Game:
                     paddle1.y = self.nextCollision[1] + random.uniform(-half_height, half_height) - half_height
                 self.NewCalculusNeeded = False
                 
-            self.state = None
-            self.nextState = None
+            # self.state = None
+            # self.nextState = None
 
             pygame.time.delay(1)
             if self.CLI_controls == True:
@@ -191,6 +192,7 @@ class Game:
                     paddle2.canMove = True
                     ball.reset(ball.x)
                     self.NewCalculusNeeded = True
+                    self.state = self.getGameState()
 #                     self.pause = True
 
                 if ball.x >= self.width:
@@ -200,6 +202,7 @@ class Game:
                     paddle2.canMove = True
                     ball.reset(ball.x)
                     self.NewCalculusNeeded = True
+                    self.state = self.getGameState()
 #                     self.pause = True
 
                 # print(f"qtable size: {ai.qtable.__sizeof__()}")
@@ -242,31 +245,34 @@ class Game:
                 self.ai.load("AI_medium.pkl")
             elif self.DIFFICULTY == 1:
                 self.ai.load("AI_easy.pkl")
+            print(f"qatble size: {self.ai.qtable.__sizeof__()}")
 
     def getGameState(self):
         res = []
 
         res.append(int(self.ball.x / 50))
         res.append(int(self.ball.y / 50))
-        res.append(int(math.degrees(math.atan2(self.ball.y_vel, self.ball.x_vel))) / 50)
+        res.append(int(math.atan2(self.ball.y_vel, self.ball.x_vel)))
         res.append(int((self.paddle2.y + self.paddle2.height / 2) / 50))
+        print(f"return getGamestate: {res}")
 
         return res
 
 
     def interactWithAI(self):
         newTS = time.time()
+        print(f"in interact, self.state = {self.state}\n\n")
         # print(f"q_table size: {self.ai.qtable.__sizeof__()}")
         if self.TRAINING == False:
             # print(f"newTS: {newTS}, lastSentInfos: {self.lastSentInfos}\n")
             if (newTS - self.lastSentInfos >= 1):
                 self.lastSentInfos = newTS
                 self.state = self.getGameState()
-                # print("NEW STATE: ", self.state)
+                print("NEW SECOND, NEW STATE: ", self.state)
         else:
             self.state = self.getGameState()
         res = self.ai.getAction(repr(self.state))
-        # print(f"AI RES: {res}\n")
+        print(f"AI RES: {res} on state {self.state}\n")
 
         prevY = self.paddle2.y
 #         if random.choice([1, 2, 3, 4, 5]) != 1:
@@ -281,11 +287,44 @@ class Game:
             self.paddle2.move(self.height, up=False)
             # print("GOES DOWN")
 
-        if self.TRAINING == True:
-            nextState = self.getGameState()
-            reward = self.ai.getReward(self.nextCollision, res, prevY, self.DIFFICULTY)
-            # print("states: ", self.state[1], self.state[3], self.nextState[1], self.nextState[3])
-            self.ai.upadateQTable(repr(self.state), res, reward, repr(nextState))
+        # if self.TRAINING == True:
+        nextState = self.getGameState()
+        reward = self.ai.getReward(self.nextCollision, res, prevY, self.DIFFICULTY)
+        # print("states: ", self.state[1], self.state[3], self.nextState[1], self.nextState[3])
+        self.ai.upadateQTable(repr(self.state), res, reward, repr(nextState))
+        self.state[3] = (int((self.paddle2.y + self.paddle2.height / 2) / 50))
+
+    # def interactWithAI(self):
+    #     newTS = time.time()
+    #     if self.TRAINING == False:
+    #         if (newTS - self.lastSentInfos >= 1):
+    #             self.lastSentInfos = newTS
+    #             # Mise à jour du game state seulement si une seconde s'est écoulée
+    #             if (newTS - self.lastSentInfos >= 1):
+    #                 self.lastSentInfos = newTS
+    #                 self.state = self.getGameState()
+    #                 print("NEW STATE: ", self.state)
+    #     else:
+    #         # Pour le mode TRAINING, vérifiez également si une seconde s'est écoulée avant de mettre à jour
+    #         if (newTS - self.lastSentInfos >= 1):
+    #             self.lastSentInfos = newTS
+    #             self.state = self.getGameState()
+
+    #     res = self.ai.getAction(repr(self.state))
+    #     # print(f"res = {res}")
+
+    #     prevY = self.paddle2.y
+    #     if res == 0:
+    #         pass
+    #     if res == 1 and self.paddle2.canMove == True:
+    #         self.paddle2.move(self.height, up=True)
+    #     if res == 2 and self.paddle2.canMove == True:
+    #         self.paddle2.move(self.height, up=False)
+
+    #     if self.TRAINING == True and (newTS - self.lastSentInfos >= 1):
+    #         nextState = self.getGameState()
+    #         reward = self.ai.getReward(self.nextCollision, res, prevY, self.DIFFICULTY)
+    #         self.ai.upadateQTable(repr(self.state), res, reward, repr(nextState))
 
 
     def isgameover(self):

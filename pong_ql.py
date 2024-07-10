@@ -25,13 +25,29 @@ class QL_AI:
         self.epsilon -= self.epsilon_decay
         if self.epsilon < self.epsilon_min:
             self.epsilon = self.epsilon_min
+    
+    def getClosestState(self, state):
+        closest_state = None
+        previous_state = None
+        for s in self.qtable.keys():
+            if closest_state == None:
+                closest_state = s
+            else:
+                previous_state = closest_state
+                closest_state = s
+                if previous_state < state and closest_state > state:
+                    return closest_state
+        return closest_state
 
     def getAction(self, state):
-        # print(f"In get Action, state: {state}")
+        print(f"In get Action, state: {state}")  
         if state not in self.qtable:
-            # print("this state is not in qtable")
+            print("this state is not in qtable")
+            # state = self.getClosestState(state)
             self.qtable[state] = np.zeros(3)
+            print(f"qatble size: {len(self.qtable)}")
         self.epsilon_greedy()
+
         if self.training == True: #need to implement training modes
             if np.random.uniform() < self.epsilon:
                 action = np.random.choice(3)

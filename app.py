@@ -33,9 +33,15 @@ async def handleFrontInput(game, event):
 async def generate_states(game, websocket, start_event):
     await start_event.wait()
     async for state in game.rungame():
-        print("new state")
-        state = json.dumps(json.loads(state))
-        await websocket.send(state)
+        # print("new state")
+        if game.pause == False:
+            state_dict = json.loads(state)
+            if state_dict["type"] == "gameover":
+                game.quit()
+                await game_over.put(state_dict)
+                return
+            state = json.dumps(json.loads(state))
+            await websocket.send(state)
         await asyncio.sleep(0.00000001)
 
 
@@ -49,10 +55,10 @@ async def handler(websocket):
     # await start_event.wait()
     await asyncio.gather(listener_task, state_generator_task)
 
-    # done, pending = await asyncio.wait(
-    #     [listener_task, state_generator_task],
-    #     return_when=asyncio.FIRST_COMPLETED
-    # )
+    done, pending = await asyncio.wait(
+        [listener_task, state_generator_task],
+        return_when=asyncio.FIRST_COMPLETED
+    )
 
     for task in pending:
         task.cancel()  # Annuler les tâches en attente si une tâche se termine
@@ -61,7 +67,7 @@ async def handler(websocket):
 async def main():
     server = await websockets.serve(handler, "", 8001)
     await game_over.get()  # Attendre le signal de fin de jeu
-    server.close()
+    # server.close()
     await server.wait_closed()
 
 
