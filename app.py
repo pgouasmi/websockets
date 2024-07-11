@@ -5,7 +5,6 @@ from game import Game
 
 game_over = asyncio.Queue()
 
-
 async def listen_for_messages(websocket, game, start_event):
     async for message in websocket:
         # print("New message received")
@@ -15,11 +14,13 @@ async def listen_for_messages(websocket, game, start_event):
         elif event["type"] == "start":
             # Signal pour démarrer la génération des états du jeu
             start_event.set()
+        elif event["type"] == "resumeOnGoal":
+            game.resume_on_goal()
         await asyncio.sleep(0.00000001)
 
 
 async def handleFrontInput(game, event):
-    print(event)
+    # print(f"received event: {event}")
     if event["event"] == "pause":
         game.pause = not game.pause
     elif event["event"] == "player1Up":
@@ -42,6 +43,7 @@ async def generate_states(game, websocket, start_event):
                 return
             state = json.dumps(json.loads(state))
             await websocket.send(state)
+            # print("new state sent to client")
         await asyncio.sleep(0.00000001)
 
 

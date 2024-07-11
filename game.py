@@ -34,7 +34,7 @@ class Game:
         self.ai = QL_AI(self.width, self.height, self.paddle2.width, self.paddle2.height)
 
         # AI settings
-        self.RUNNING_AI = True
+        self.RUNNING_AI = False
         self.DIFFICULTY = 3
         self.SAVING = True
         self.TRAINING = False
@@ -82,13 +82,14 @@ class Game:
         if keys[pygame.K_ESCAPE]:
             self.gameOver = True
         if keys[pygame.K_SPACE]:
-            self.currentTs = time.time()
-            if self.currentTs - 0.2 > self.pauseCoolDown:
-                self.pauseCoolDown = self.currentTs
-                if self.pause == True:
-                    self.pause = False
-                else:
-                    self.pause = True
+            if self.gameState["goal"] == "None":
+                self.currentTs = time.time()
+                if self.currentTs - 0.2 > self.pauseCoolDown:
+                    self.pauseCoolDown = self.currentTs
+                    if self.pause == True:
+                        self.pause = False
+                    else:
+                        self.pause = True
     
 
     def handlePlayer1Inputs(self):
@@ -162,18 +163,22 @@ class Game:
             self.paddle2.score += 1
             self.paddle1.canMove = True
             self.paddle2.canMove = True
-            self.ball.reset(self.ball.x)
             self.NewCalculusNeeded = True
             self.state = self.getGameState()
+            self.pause = True
+            # self.ball.reset(self.ball.x)
+            self.last_frame_time = 0
 
         if self.ball.x >= self.width:
             self.goal1 = True
             self.paddle1.score += 1
             self.paddle1.canMove = True
             self.paddle2.canMove = True
-            self.ball.reset(self.ball.x)
             self.NewCalculusNeeded = True
             self.state = self.getGameState()
+            self.pause = True
+            # self.ball.reset(self.ball.x)
+            self.last_frame_time = 0
 
 
     async def rungame(self):
@@ -215,6 +220,7 @@ class Game:
             if current_time - self.last_frame_time >= 1/60 or self.isgameover() == True:
                 self.serialize()
                 self.last_frame_time = current_time
+                print(f"game state: {self.gameState}")
                 yield json.dumps(self.gameState)
 
 
@@ -241,7 +247,7 @@ class Game:
     def init_ai(self):
         if self.LOADING == True:
             self.ai.epsilon = 0
-            print("LOADING")
+            # print("LOADING")
             if self.testing == True:
                 self.ai.load('AI_testing.pkl')
             elif self.DIFFICULTY == 3:
@@ -318,17 +324,17 @@ class Game:
             self.gameState["type"] = "None"
         if self.goal1 == True:
             self.gameState["goal"] = "1"
-            self.goal1 = False
+            # self.goal1 = False
         elif self.goal2 == True:
             self.gameState["goal"] = "2"
-            self.goal2 = False
+            # self.goal2 = False
         else:
             self.gameState["goal"] = "None"
-        if self.pause == False:
-            self.gameState["game"] = self.gameSerialize()
-            self.gameState["ball"] = self.ball.serialize(self)
-            self.gameState["paddle1"] = self.paddle1.serialize(self)
-            self.gameState["paddle2"] = self.paddle2.serialize(self)
+        # if self.pause == False:
+        self.gameState["game"] = self.gameSerialize()
+        self.gameState["ball"] = self.ball.serialize(self)
+        self.gameState["paddle1"] = self.paddle1.serialize(self)
+        self.gameState["paddle2"] = self.paddle2.serialize(self)
     
 
     def gameSerialize(self):
@@ -340,5 +346,6 @@ class Game:
         return res
 
 
-    def update(self):
-        pass
+    def resume_on_goal(self):
+        self.ball.reset(self.ball.x)
+        self.pause = False
