@@ -115,7 +115,6 @@ class Game:
 
         if self.testing == True:
             ai.save('testing')
-            pygame.quit
         if self.DIFFICULTY == 3:
             ai.save('hard')
         elif self.DIFFICULTY == 2:
@@ -164,7 +163,7 @@ class Game:
             self.paddle1.canMove = True
             self.paddle2.canMove = True
             self.NewCalculusNeeded = True
-            self.state = self.getGameState()
+            # self.state = self.getGameState()
             self.pause = True
             # self.ball.reset(self.ball.x)
             self.last_frame_time = 0
@@ -175,7 +174,7 @@ class Game:
             self.paddle1.canMove = True
             self.paddle2.canMove = True
             self.NewCalculusNeeded = True
-            self.state = self.getGameState()
+            # self.state = self.getGameState()
             self.pause = True
             # self.ball.reset(self.ball.x)
             self.last_frame_time = 0
@@ -340,3 +339,8 @@ class Game:
         print("resume")
         self.ball.reset(self.ball.x)
         self.pause = False
+        self.goal1 = False
+        self.goal2 = False
+        self.state = self.getGameState()
+        self.lastSentInfos = 0
+    

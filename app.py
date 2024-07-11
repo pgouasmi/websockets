@@ -103,20 +103,24 @@ async def handleFrontInput(game, event):
     elif event["event"] == "player1Down":
         for i in range(10):
             game.paddle1.move(game.height, up=False)
+    elif event["event"] == "reset":
+        game.ball.reset(game.ball.x)
+        game.state = game.getGameState()
+        game.lastSentInfos = 0
 
 
 async def generate_states(game, websocket, start_event):
     await start_event.wait()
     async for state in game.rungame():
         # print("new state")
-        if game.pause == False:
-            state_dict = json.loads(state)
-            if state_dict["type"] == "gameover":
-                game.quit()
-                await game_over.put(state_dict)
-                return
-            state = json.dumps(json.loads(state))
-            await websocket.send(state)
+        # if game.pause == False:
+        state_dict = json.loads(state)
+        if state_dict["type"] == "gameover":
+            game.quit()
+            await game_over.put(state_dict)
+            return
+        state = json.dumps(json.loads(state))
+        await websocket.send(state)
         await asyncio.sleep(0.00000001)
 
 
