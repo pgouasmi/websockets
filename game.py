@@ -19,8 +19,8 @@ class Game:
         self.black = (0, 0, 0)
 
         # CLI and rendering options
-        self.display = True
-        self.CLI_controls = True
+        self.display = False
+        self.CLI_controls = False
         if self.display == True or self.CLI_controls == True:
             pygame.init()
             if self.display == True:
@@ -34,7 +34,7 @@ class Game:
         self.ai = QL_AI(self.width, self.height, self.paddle2.width, self.paddle2.height)
 
         # AI settings
-        self.RUNNING_AI = False
+        self.RUNNING_AI = True
         self.DIFFICULTY = 3
         self.SAVING = True
         self.TRAINING = False
@@ -337,5 +337,6 @@ class Game:
 
 
     def resume_on_goal(self):
+        print("resume")
         self.ball.reset(self.ball.x)
         self.pause = False
