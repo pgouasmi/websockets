@@ -42,7 +42,7 @@ async def generate_states(game, websocket, start_event):
             await game_over.put(state_dict)
             return
         state = json.dumps(json.loads(state))
-        # print(state)
+        print(state)
         await websocket.send(state)
         # print("new state sent to client")
     await asyncio.sleep(0.00000001)

@@ -48,7 +48,7 @@ class Game:
         self.init_ai()
 
         # game related variables
-        self.scoreLimit = 10000000
+        self.scoreLimit = 1
         self.run = True
         self.pause = False
         self.goal1 = False
@@ -309,10 +309,7 @@ class Game:
 
 
     def serialize(self):
-        if self.isgameover():
-            self.gameState["type"] = "gameover"
-        else:
-            self.gameState["type"] = "None"
+        self.gameState["type"] = "None"
         if self.goal1 == True:
             self.gameState["goal"] = "1"
             # self.goal1 = False
@@ -326,14 +323,16 @@ class Game:
         self.gameState["ball"] = self.ball.serialize(self)
         self.gameState["paddle1"] = self.paddle1.serialize(self)
         self.gameState["paddle2"] = self.paddle2.serialize(self)
+        if self.isgameover():
+            self.gameState["gameover"] = "Score"
+        else:
+            self.gameState["gameover"] = None
     
 
     def gameSerialize(self):
         res:dict = {}
-
         res["scoreLimit"] = self.scoreLimit
         res["pause"] = self.pause
-
         return res
 
 
