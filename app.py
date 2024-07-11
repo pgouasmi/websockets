@@ -35,16 +35,17 @@ async def generate_states(game, websocket, start_event):
     await start_event.wait()
     async for state in game.rungame():
         # print("new state")
-        if game.pause == False:
-            state_dict = json.loads(state)
-            if state_dict["type"] == "gameover":
-                game.quit()
-                await game_over.put(state_dict)
-                return
-            state = json.dumps(json.loads(state))
-            await websocket.send(state)
-            # print("new state sent to client")
-        await asyncio.sleep(0.00000001)
+        # if game.pause == False:
+        state_dict = json.loads(state)
+        if state_dict["type"] == "gameover":
+            game.quit()
+            await game_over.put(state_dict)
+            return
+        state = json.dumps(json.loads(state))
+        print(state)
+        await websocket.send(state)
+        print("new state sent to client")
+    await asyncio.sleep(0.00000001)
 
 
 async def handler(websocket):

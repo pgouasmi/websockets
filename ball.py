@@ -25,7 +25,7 @@ class Ball:
         self.x_vel = self.max_speed / 3
         self.y_vel = 0
         self.frictionTimestamp = time.time()
-        self.x = win_width - 10
+        self.x = win_width - 100
 
 
     def draw(self, win):

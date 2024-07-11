@@ -187,6 +187,7 @@ class Game:
         paddle2 = self.paddle2
 
         while self.run:
+            # print("is running")
             current_time = time.time()
 
             if self.NewCalculusNeeded == True:
@@ -220,7 +221,7 @@ class Game:
             if current_time - self.last_frame_time >= 1/60 or self.isgameover() == True:
                 self.serialize()
                 self.last_frame_time = current_time
-                print(f"game state: {self.gameState}")
+                # print(f"game state: {self.gameState}")
                 yield json.dumps(self.gameState)
 
 
