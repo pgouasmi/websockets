@@ -282,6 +282,7 @@ class Game:
         res = self.ai.getAction(repr(self.state))
 
         prevY = self.paddle2.y
+        # to nerf the AI:
 #         if random.choice([1, 2, 3, 4, 5]) != 1:
 #             res = 0
         if res == 0:
@@ -290,18 +291,7 @@ class Game:
             self.paddle2.move(self.height, up=True)
         if res == 2 and self.paddle2.canMove == True:
             self.paddle2.move(self.height, up=False)
-
-        # if self.TRAINING == True:
-        #     nextState = self.getGameState()
-        #     reward = self.ai.getReward(self.nextCollision, res, prevY, self.DIFFICULTY)
-        #     self.ai.upadateQTable(repr(self.state), res, reward, repr(nextState))
-
-        # self.state[3] = (int((self.paddle2.y + self.paddle2.height / 2) / 50))
-
-        # if self.TRAINING == True:
         nextState = self.getGameState()
-        # else:
-        #     nextState = self.state
         reward = self.ai.getReward(self.nextCollision, res, prevY, self.DIFFICULTY)
         self.ai.upadateQTable(repr(self.state), res, reward, repr(nextState))
         self.state[3] = (int((self.paddle2.y + self.paddle2.height / 2) / 50))
