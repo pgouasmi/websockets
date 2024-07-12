@@ -336,7 +336,7 @@ class Game:
         return res
 
 
-    def resume_on_goal(self):
+    async def resume_on_goal(self):
         print("resume")
         self.ball.reset(self.ball.x)
         self.goal1 = False

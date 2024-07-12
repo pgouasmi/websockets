@@ -4,6 +4,7 @@ import json
 from game import Game
 
 game_over = asyncio.Queue()
+resume_on_goal = asyncio.Queue()
 
 # async def listen_for_messages(websocket, game, start_event):
 #     async for message in websocket:
@@ -89,7 +90,9 @@ async def listen_for_messages(websocket, game, start_event):
             # Signal pour démarrer la génération des états du jeu
             start_event.set()
         elif event["type"] == "resumeOnGoal":
-            game.resume_on_goal()
+			resume_on_goal.clear()
+            await game.resume_on_goal()
+			resume_on_goal.set()
         await asyncio.sleep(0.00000001)
 
 
