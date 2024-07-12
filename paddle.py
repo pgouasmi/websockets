@@ -18,6 +18,19 @@ class Paddle:
         self.score = 0
         # print(f"width: {width}, height: {height}")
         # exit(0)
+
+    def reset_position(self):
+        up, down = False, False
+        if self.y + self.height / 2 < self.win_height / 2:
+            up = True
+        else:
+            down = True
+        if up is True:
+            while self.y + self.height / 2 < self.win_height / 2 + 10:
+                self.move(self.win_height, up=False)
+        else:
+            while self.y + self.height / 2 > self.win_height / 2 - 10:
+                self.move(self.win_height, up=True)
     
 
     def draw(self, win):

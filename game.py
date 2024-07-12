@@ -32,13 +32,14 @@ class Game:
         self.paddle1: Paddle = Paddle(self.width // 30, self.height // 2 - 60, self.height // 150, self.height // 6, self.width, self.height)
         self.paddle2: Paddle = Paddle(self.width - self.width // 30, self.height // 2 - 60, self.height // 150, self.height // 6, self.width, self.height)
         self.ai = QL_AI(self.width, self.height, self.paddle2.width, self.paddle2.height)
+        # self.state = self.getGameState()
 
         # AI settings
         self.RUNNING_AI = True
         self.DIFFICULTY = 3
         self.SAVING = True
         self.TRAINING = False
-        self.TRAININGPARTNER = False
+        self.TRAININGPARTNER = True
         self.LOADING = True
         self.testing = True
         self.lastDump = 0
@@ -338,9 +339,11 @@ class Game:
     def resume_on_goal(self):
         print("resume")
         self.ball.reset(self.ball.x)
-        self.pause = False
         self.goal1 = False
         self.goal2 = False
-        self.state = self.getGameState()
-        self.lastSentInfos = 0
+        # if self.RUNNING_AI is True:
+        #     self.paddle2.reset_position()
+        # self.state = self.getGameState()
+        self.lastSentInfos = time.time() - 0.25
+        self.pause = False
     

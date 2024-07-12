@@ -22,10 +22,10 @@ class Ball:
         else:
             self.max_speed = self.win_width * self.win_height // 700000
         self.radius = radius
-        self.x_vel = self.max_speed / 3
+        self.x_vel = self.max_speed / 3.5
         self.y_vel = 0
         self.frictionTimestamp = time.time()
-        self.x = win_width - 100
+        # self.x = win_width - 100
 
 
     def draw(self, win):
@@ -251,7 +251,7 @@ class Ball:
         return res
     
     def friction(self):
-        if time.time() - self.frictionTimestamp > 0.4:
+        if time.time() - self.frictionTimestamp > 0.4 and math.sqrt(self.x_vel ** 2 + self.y_vel ** 2) > self.max_speed / 5:
             self.frictionTimestamp = time.time()
             self.x_vel = self.x_vel * 0.93
             self.y_vel = self.y_vel * 0.93
