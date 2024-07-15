@@ -54,6 +54,7 @@ class QL_AI:
                 action = np.argmax(self.qtable[state])
         else:
             action = np.argmax(self.qtable[state])
+        print(f"qtaable size: {len(self.qtable)}")
         return action
     
 

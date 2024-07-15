@@ -1,10 +1,11 @@
 import asyncio
 import websockets
 import json
+import signal
 from game import Game
 
-game_over = asyncio.Queue()
-resume_on_goal = asyncio.Queue()
+game_over = asyncio.Event()
+resume_on_goal = asyncio.Event()
 
 # async def listen_for_messages(websocket, game, start_event):
 #     async for message in websocket:
@@ -89,10 +90,11 @@ async def listen_for_messages(websocket, game, start_event):
         elif event["type"] == "start":
             # Signal pour démarrer la génération des états du jeu
             start_event.set()
+            resume_on_goal.set()
         elif event["type"] == "resumeOnGoal":
-			resume_on_goal.clear()
+            resume_on_goal.clear()
             await game.resume_on_goal()
-			resume_on_goal.set()
+            resume_on_goal.set()
         await asyncio.sleep(0.00000001)
 
 
@@ -117,6 +119,7 @@ async def generate_states(game, websocket, start_event):
     async for state in game.rungame():
         # print("new state")
         # if game.pause == False:
+        await resume_on_goal.wait()
         state_dict = json.loads(state)
         if state_dict["type"] == "gameover":
             game.quit()
@@ -129,6 +132,17 @@ async def generate_states(game, websocket, start_event):
 
 async def handler(websocket):
     game = Game()
+
+    def signal_handler():
+        print("Signal SIGINT reçu, arrêt du jeu...")
+        game.quit()
+        game_over.set()
+        return True
+
+    # Enregistrer le gestionnaire de signaux
+    loop = asyncio.get_running_loop()
+    loop.add_signal_handler(signal.SIGINT, signal_handler)
+
     start_event = asyncio.Event()
     listener_task = asyncio.create_task(listen_for_messages(websocket, game, start_event))
     state_generator_task = asyncio.create_task(generate_states(game, websocket, start_event))
@@ -144,12 +158,14 @@ async def handler(websocket):
 
     for task in pending:
         task.cancel()  # Annuler les tâches en attente si une tâche se termine
-
+    loop.remove_signal_handler(signal.SIGINT)
 
 async def main():
+
+
     server = await websockets.serve(handler, "", 8001)
-    await game_over.get()  # Attendre le signal de fin de jeu
-    # server.close()
+    await game_over.wait()  # Attendre le signal de fin de jeu
+    server.close()
     await server.wait_closed()
 
 
