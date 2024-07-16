@@ -8,6 +8,7 @@ import pygame
 import random
 from pong_ql import QL_AI
 import asyncio
+import copy
 
 
 class Game:
@@ -39,7 +40,7 @@ class Game:
         self.DIFFICULTY = 3
         self.SAVING = True
         self.TRAINING = False
-        self.TRAININGPARTNER = True
+        self.TRAININGPARTNER = False
         self.LOADING = True
         self.testing = True
         self.lastDump = 0
@@ -62,6 +63,10 @@ class Game:
         self.are_args_set = False
         self.last_frame_time = 0
         self.state = self.getGameState()
+
+        self.serve = False
+        self.ball.serve = self.serve
+        self.remanent_ball = None
 
 
     def handleArguments(self, event):
@@ -166,8 +171,12 @@ class Game:
             self.NewCalculusNeeded = True
             # self.state = self.getGameState()
             self.pause = True
-            # self.ball.reset(self.ball.x)
             self.last_frame_time = 0
+            self.lastSentInfos = 0
+            self.interactWithAI()
+
+            self.remanent_ball = copy.deepcopy(self.ball)
+            self.ball.reset(self.ball.x)
 
         if self.ball.x >= self.width:
             self.goal1 = True
@@ -177,8 +186,13 @@ class Game:
             self.NewCalculusNeeded = True
             # self.state = self.getGameState()
             self.pause = True
-            # self.ball.reset(self.ball.x)
             self.last_frame_time = 0
+            self.lastSentInfos = 0
+            self.interactWithAI()
+
+            self.remanent_ball = copy.deepcopy(self.ball)
+            self.ball.reset(self.ball.x)
+
 
 
     async def rungame(self):
@@ -219,6 +233,7 @@ class Game:
 
             # send JSON game state
             if current_time - self.last_frame_time >= 1/60 or self.isgameover() == True:
+                # print("new state generated")
                 self.serialize()
                 self.last_frame_time = current_time
                 # print(f"game state: {self.gameState}")
@@ -320,8 +335,17 @@ class Game:
             self.gameState["goal"] = "None"
         # if self.pause == False:
         self.gameState["game"] = self.gameSerialize()
-        self.gameState["ball"] = self.ball.serialize(self)
+
+        if self.remanent_ball != None:
+            # self.gameState["ball"] = self.remanent_ball.serialize(self)
+            self.gameState["ball"] = self.ball.serialize(self)
+
+            self.remanent_ball = None
+        else:
+            self.gameState["ball"] = self.ball.serialize(self)
+        # print(f"paddle1 Score: {self.paddle1.score}")
         self.gameState["paddle1"] = self.paddle1.serialize(self)
+        # print(f"paddle2 Score: {self.paddle2.score}")
         self.gameState["paddle2"] = self.paddle2.serialize(self)
         if self.isgameover():
             self.gameState["gameover"] = "Score"
@@ -338,7 +362,7 @@ class Game:
 
     def resume_on_goal(self):
         print("resume")
-        self.ball.reset(self.ball.x)
+        # self.ball.reset(self.ball.x)
         self.goal1 = False
         self.goal2 = False
         # if self.RUNNING_AI is True:
