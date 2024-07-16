@@ -18,7 +18,7 @@ async def listen_for_messages(websocket, game, start_event):
             start_event.set()
             generating.set()
         elif event["type"] == "resumeOnGoal":
-            game.resume_on_goal()
+            await game.resume_on_goal()
             generating.set()
         await asyncio.sleep(0.00000001)
 

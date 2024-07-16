@@ -69,7 +69,7 @@ class Game:
         self.ball.serve = self.serve
         self.remanent_ball = None
         
-        self.speed_multiplier = 2
+        self.speed_multiplier = 1
         self.ball.max_speed *= self.speed_multiplier
         self.paddle1.vel *= self.speed_multiplier
         self.paddle2.vel *= self.speed_multiplier
