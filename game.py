@@ -64,14 +64,19 @@ class Game:
         self.last_frame_time = 0
         self.state = self.getGameState()
 
+
         self.serve = False
         self.ball.serve = self.serve
         self.remanent_ball = None
-
+        
+        self.speed_multiplier = 2
+        self.ball.max_speed *= self.speed_multiplier
+        self.paddle1.vel *= self.speed_multiplier
+        self.paddle2.vel *= self.speed_multiplier
 
     def handleArguments(self, event):
         print(event)
-        # handling the argumemnts -> if OK ->
+        # handling the argumemnts ->31504 if OK ->
         self.are_args_set = True
 
 
@@ -278,10 +283,14 @@ class Game:
     def getGameState(self):
         res = []
 
-        res.append(int(self.ball.x / 50))
-        res.append(int(self.ball.y / 50))
-        res.append(int(math.atan2(self.ball.y_vel, self.ball.x_vel)))
-        res.append(int((self.paddle2.y + self.paddle2.height / 2) / 50))
+        # res.append(int(self.ball.x / 50))
+        # res.append(int(self.ball.y / 50))
+        # res.append(int(math.atan2(self.ball.y_vel, self.ball.x_vel)))
+        # res.append(int((self.paddle2.y + self.paddle2.height / 2) / 50))
+        res.append(int(self.ball.x / 75))
+        res.append(int(self.ball.y / 75))
+        res.append(round(math.atan2(self.ball.y_vel, self.ball.x_vel) * 2) / 2)
+        res.append(int((self.paddle2.y + self.paddle2.height / 2) / 75))
         # print(f"return getGamestate: {res}")
 
         return res
@@ -360,7 +369,7 @@ class Game:
         return res
 
 
-    def resume_on_goal(self):
+    async def resume_on_goal(self):
         print("resume")
         # self.ball.reset(self.ball.x)
         self.goal1 = False
