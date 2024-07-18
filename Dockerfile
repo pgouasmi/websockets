@@ -12,6 +12,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 WORKDIR /usr/src/app/sources
 
-RUN pwd
+# RUN pwd
+
+EXPOSE 8001
 
 CMD ["python3", "app.py"]
