@@ -10,15 +10,16 @@ game_over = asyncio.Event()
 resume_on_goal = asyncio.Event()
 game_is_initialized = asyncio.Event()
 ai_is_initialized = asyncio.Event()
+start_event = asyncio.Event()
 game = None
 
 
-async def listen_for_messages(websocket, start_event):
+async def listen_for_messages(websocket):
     async for message in websocket:
         print(f"New message received {message}")
         event = json.loads(message)
         if event["type"] == "keyDown":
-            await handleFrontInput(game, event)
+            await handleFrontInput(event)
         elif event["type"] == "start":
             # Signal pour démarrer la génération des états du jeu
             start_event.set()
@@ -46,7 +47,7 @@ async def handleFrontInput(event):
         game.lastSentInfos = 0
 
 
-async def generate_states(websocket, start_event):
+async def generate_states(websocket):
     print("Generating states")
     await ai_is_initialized.wait()
     await start_event.wait()
@@ -60,9 +61,9 @@ async def generate_states(websocket, start_event):
             await game_over.put(state_dict)
             return
         state = json.dumps(json.loads(state))
-        ai_data = game.getGameState()
+        # ai_data = game.getGameState()
         await websocket.send(state)
-        await websocket.send(json.dumps(ai_data))
+        # await websocket.send(json.dumps(ai_data))
         await asyncio.sleep(0.00000001)
 
 def handle_ai_message(message):
@@ -95,6 +96,20 @@ async def send_ai_setup_instructions(websocket):
     await asyncio.sleep(0.00000001)
 
 
+async def listen_for_ai_messages(websocket):
+    async for message in websocket:
+        print(f"new message received from AI: {message}")
+        handle_ai_message(json.loads(message))
+        await asyncio.sleep(0.00000001)
+
+async def send_game_state(websocket):
+    game_state:dict = {}
+    while game_over.is_set() is False and start_event.is_set() is True:
+        game_state["type"] = "data"
+        game_state["state"] = game.getGameState()
+        await websocket.send(json.dumps(game_state))
+        await asyncio.sleep(0.00000001)
+
 async def handlerAI(websocket):
     print("AI interface started")
     await game_is_initialized.wait()
@@ -104,15 +119,21 @@ async def handlerAI(websocket):
         ai_is_initialized.set()
         return
     await send_ai_setup_instructions(websocket)
-    last_timestamp = 0
-    game_state = None
-    async for message in websocket:
-        print(f"new message received from AI: {message}")
-        handle_ai_message(json.loads(message))
-        if time.time() - last_timestamp < 1 and game is not None:
-            game_state = game.getGameState()
-        websocket.send(json.dumps(game_state))
-        await asyncio.sleep(0.00000001)
+    # last_timestamp = 0
+    # game_state = None
+    # async for message in websocket:
+    #     print(f"new message received from AI: {message}")
+    #     handle_ai_message(json.loads(message))
+    #     if time.time() - last_timestamp < 1 and game is not None:
+    #         game_state = game.getGameState()
+    #     await websocket.send(json.dumps(game_state))
+    #     await asyncio.sleep(0.00000001)
+    listener_task = asyncio.create_task(listen_for_ai_messages(websocket))
+    state_sender_task = asyncio.create_task(send_game_state(websocket))
+    await asyncio.gather(listener_task, state_sender_task)
+
+
+
 
 
 
@@ -134,8 +155,8 @@ async def handler(websocket):
     loop.add_signal_handler(signal.SIGINT, signal_handler)
 
     start_event = asyncio.Event()
-    listener_task = asyncio.create_task(listen_for_messages(websocket, start_event))
-    state_generator_task = asyncio.create_task(generate_states(websocket, start_event))
+    listener_task = asyncio.create_task(listen_for_messages(websocket))
+    state_generator_task = asyncio.create_task(generate_states(websocket))
 
     # Attendre l'événement "start" avant de démarrer la génération des états
     # await start_event.wait()

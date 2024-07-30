@@ -39,17 +39,17 @@ class Game:
         self.DIFFICULTY = 3
         self.SAVING = True
         self.TRAINING = True
-        self.TRAININGPARTNER = True
+        self.TRAININGPARTNER = False
         self.LOADING = True
         self.testing = True
         self.lastDump = 0
         self.ai.training = self.TRAINING
         self.gameOver = False
 
-        self.init_ai()
+        # self.init_ai()
 
         # game related variables
-        self.scoreLimit = 1
+        self.scoreLimit = 100
         self.run = True
         self.pause = False
         self.goal1 = False
