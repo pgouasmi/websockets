@@ -25,6 +25,7 @@ class Ball:
         self.x_vel = self.max_speed / 3.5
         self.y_vel = 0
         self.frictionTimestamp = time.time()
+        self.serve = None
         # self.x = win_width - 100
 
 
@@ -40,7 +41,7 @@ class Ball:
     def reset(self, x):
         self.x = self.win_width // 2
         self.y = self.win_height // 2
-        if x > 0:
+        if x > 0 and self.serve == False:
             goalAngle = random.uniform(-30, 30)
         else:
             rng = random.choice((1, 2))
@@ -49,7 +50,7 @@ class Ball:
             else:
                 goalAngle = random.uniform(150, 180)
         angle_rad = math.radians(goalAngle)
-        speed = self.max_speed / 3
+        speed = self.max_speed / 3.5 
         self.x_vel = speed * math.cos(angle_rad)
         self.y_vel = speed * math.sin(angle_rad)
 

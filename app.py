@@ -15,18 +15,17 @@ game = None
 
 async def listen_for_messages(websocket, start_event):
     async for message in websocket:
-        print(f"New message received {message}")
+        # print(f"New message received {message}")
         event = json.loads(message)
         if event["type"] == "keyDown":
             await handleFrontInput(game, event)
         elif event["type"] == "start":
             # Signal pour démarrer la génération des états du jeu
             start_event.set()
-            resume_on_goal.set()
+            generating.set()
         elif event["type"] == "resumeOnGoal":
-            resume_on_goal.clear()
-            await game.resume_on_goal()
-            resume_on_goal.set()
+            game.resume_on_goal()
+            generating.set()
         await asyncio.sleep(0.00000001)
 
 
@@ -53,8 +52,11 @@ async def generate_states(websocket, start_event):
     async for state in game.rungame():
         print(f"new state:{state}")
         # if game.pause == False:
-        await resume_on_goal.wait()
+        # print(f"generating: {generating.is_set()}")
+        await generating.wait()
         state_dict = json.loads(state)
+        if state_dict["goal"] != "None":
+            generating.clear()
         if state_dict["type"] == "gameover":
             game.quit()
             await game_over.put(state_dict)
